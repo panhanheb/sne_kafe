@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" fill="none">
+  <defs>
+    <linearGradient id="creamCupGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+      <stop offset="0%" stop-color="#FFFBF7"/>
+      <stop offset="45%" stop-color="#EFE6DC"/>
+      <stop offset="100%" stop-color="#D7C9BA"/>
+    </linearGradient>
+    <linearGradient id="coffeeFoamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A6734A"/>
+      <stop offset="60%" stop-color="#5C3B24"/>
+      <stop offset="100%" stop-color="#361E10"/>
+    </linearGradient>
+    <linearGradient id="artGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFF8F0"/>
+      <stop offset="100%" stop-color="#F2DEC9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Cup drop shadow -->
+  <ellipse cx="200" cy="445" rx="100" ry="18" fill="#000000" opacity="0.4" filter="blur(10px)"/>
+
+  <!-- Ceramic Mug Body -->
+  <!-- Handle -->
+  <path d="M260 210 C345 220 345 340 250 345" stroke="url(#creamCupGrad)" stroke-width="32" stroke-linecap="round" fill="none"/>
+  <path d="M260 210 C345 220 345 340 250 345" stroke="#BFB0A2" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- Mug bowl -->
+  <path d="M95 190 L125 410 Q128 430 200 430 Q272 430 275 410 L305 190 Z" fill="url(#creamCupGrad)"/>
+
+  <!-- Mug Rim & Liquid (Top View Angle) -->
+  <ellipse cx="200" cy="190" rx="105" ry="34" fill="#E8DEC3"/>
+  <ellipse cx="200" cy="190" rx="98" ry="30" fill="url(#coffeeFoamGrad)"/>
+
+  <!-- Latte Art Leaf (Rosetta) -->
+  <g opacity="0.92">
+    <ellipse cx="200" cy="190" rx="18" ry="10" fill="url(#artGrad)"/>
+    <ellipse cx="190" cy="184" rx="14" ry="7" fill="url(#artGrad)" transform="rotate(-20 190 184)"/>
+    <ellipse cx="210" cy="184" rx="14" ry="7" fill="url(#artGrad)" transform="rotate(20 210 184)"/>
+    <ellipse cx="184" cy="176" rx="11" ry="5" fill="url(#artGrad)" transform="rotate(-30 184 176)"/>
+    <ellipse cx="216" cy="176" rx="11" ry="5" fill="url(#artGrad)" transform="rotate(30 216 176)"/>
+    <path d="M200 165 C200 185 200 205 200 212" stroke="#FFF8F0" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Heart top -->
+    <path d="M195 162 C190 157 200 153 200 159 C200 153 210 157 205 162 L200 167 Z" fill="url(#artGrad)"/>
+  </g>
+
+  <!-- Sne Kafe subtle emblem on mug side -->
+  <text x="200" y="320" font-family="'Inter', sans-serif" font-weight="800" font-size="13" fill="#A88B74" text-anchor="middle" letter-spacing="2.5" opacity="0.75">SNE KAFE</text>
+  <path d="M185 330 H215" stroke="#6FA8A3" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+</svg>
+

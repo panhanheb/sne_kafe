@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Akbalthom';
+  src: url('/fonts/AKbalthom-KhmerNew.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akbalthom';
+  src: url('/fonts/AKbalthom-KhmerNew.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akbalthom-HighSchool';
+  src: url('/fonts/AKbalthom-HighSchool.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', 'Akbalthom', system-ui, -apple-system, sans-serif;
+    background-color: #2B1D16;
+    color: #F4ECE4;
+  }
+
+  [lang="km"], .font-khmer {
+    font-family: 'Akbalthom', system-ui, sans-serif;
+    line-height: 1.7;
+  }
+
+  body {
+    background: radial-gradient(circle at 50% 0%, #3D2B22 0%, #2B1D16 60%, #1E130D 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Custom subtle coffee scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1F140E;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #4E3A2F;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6FA8A3;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(58, 42, 33, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(217, 168, 124, 0.12);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  }
+
+  .glass-pill {
+    background: rgba(43, 29, 22, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(217, 168, 124, 0.18);
+  }
+
+  .glass-button {
+    background: rgba(111, 168, 163, 0.95);
+    color: #152220;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-button:hover {
+    background: #88BCB7;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(111, 168, 163, 0.5);
+  }
+
+  .watermark-text {
+    font-size: clamp(5rem, 15vw, 15rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: rgba(217, 168, 124, 0.035);
+    user-select: none;
+    pointer-events: none;
+  }
+}
+
+/* Background wavy texture */
+.bg-coffee-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 15%, rgba(217, 168, 124, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(111, 168, 163, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.25) 0%, transparent 70%);
+}
+

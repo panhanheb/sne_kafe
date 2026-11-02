@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" fill="none">
+  <defs>
+    <linearGradient id="cupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A3125"/>
+      <stop offset="50%" stop-color="#2F1E16"/>
+      <stop offset="100%" stop-color="#1B100B"/>
+    </linearGradient>
+    <linearGradient id="sleeveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D9A87C"/>
+      <stop offset="50%" stop-color="#ECC6A2"/>
+      <stop offset="100%" stop-color="#C28F60"/>
+    </linearGradient>
+    <linearGradient id="lidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D0C8C0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="25" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Cup shadow -->
+  <ellipse cx="200" cy="450" rx="110" ry="20" fill="#000000" opacity="0.45" filter="blur(10px)"/>
+
+  <!-- Main cup body -->
+  <g filter="url(#shadow)">
+    <path d="M100 130 L130 420 Q132 435 200 435 Q268 435 270 420 L300 130 Z" fill="url(#cupGrad)"/>
+
+    <!-- Kraft sleeve -->
+    <path d="M112 230 L122 335 Q198 350 278 335 L288 230 Q200 242 112 230 Z" fill="url(#sleeveGrad)"/>
+
+    <!-- Sne Kafe stamp on sleeve -->
+    <circle cx="200" cy="285" r="32" fill="#2B1D16" opacity="0.9"/>
+    <text x="200" y="280" font-family="'Inter', sans-serif" font-weight="900" font-size="9.5" fill="#D9A87C" text-anchor="middle" letter-spacing="1.5">SNE KAFE</text>
+    <path d="M190 293 H210 M195 298 H205" stroke="#6FA8A3" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Cup Rim & Lid -->
+    <path d="M85 125 C85 110 115 100 200 100 C285 100 315 110 315 125 C315 132 295 138 200 138 C105 138 85 132 85 125 Z" fill="#E8E2DC"/>
+    <path d="M98 115 C100 90 140 80 200 80 C260 80 300 90 302 115 Z" fill="url(#lidGrad)"/>
+    <path d="M170 80 C175 75 190 73 200 73 C210 73 225 75 230 80 Z" fill="#C5BCB3"/>
+  </g>
+
+  <!-- Steam effects -->
+  <path d="M160 65 Q150 40 170 20 Q185 5 175 -15" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M210 60 Q225 35 215 15 Q205 -5 218 -25" stroke="rgba(255,255,255,0.25)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M245 68 Q260 45 250 25" stroke="rgba(255,255,255,0.18)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+</svg>
+

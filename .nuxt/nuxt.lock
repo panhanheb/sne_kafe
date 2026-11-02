@@ -1,0 +1,10 @@
+{
+  "pid": 20260,
+  "startedAt": 1793608171175,
+  "interactive": true,
+  "command": "dev",
+  "cwd": "C:/Users/saml/Desktop/cafe",
+  "port": 3000,
+  "hostname": "::1",
+  "url": "http://[::1]:3000"
+}

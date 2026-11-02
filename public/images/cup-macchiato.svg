@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
+  <defs>
+    <linearGradient id="maccLayer" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="25%" stop-color="#FCEFD8"/>
+      <stop offset="35%" stop-color="#9C5C30"/>
+      <stop offset="60%" stop-color="#C98852"/>
+      <stop offset="85%" stop-color="#F2DEC8"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <linearGradient id="caramelDrizzle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAA34B"/>
+      <stop offset="100%" stop-color="#A85710"/>
+    </linearGradient>
+    <filter id="maccShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#maccShadow)">
+    <ellipse cx="160" cy="285" rx="80" ry="14" fill="#1C120C" opacity="0.6"/>
+    <!-- Glass Body -->
+    <path d="M102 75 L126 270 Q128 280 160 280 Q192 280 194 270 L218 75 Z" fill="url(#maccLayer)"/>
+    <!-- Glass reflection -->
+    <path d="M112 90 L132 265" stroke="rgba(255,255,255,0.45)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Top foam & Caramel crosshatch -->
+    <ellipse cx="160" cy="75" rx="58" ry="16" fill="#FFFDF9"/>
+    <!-- Caramel drizzle grid on top -->
+    <path d="M135 70 Q160 80 185 70" stroke="url(#caramelDrizzle)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M130 76 Q160 86 190 76" stroke="url(#caramelDrizzle)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M140 82 Q160 90 180 82" stroke="url(#caramelDrizzle)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M148 65 Q152 78 150 88" stroke="url(#caramelDrizzle)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M165 65 Q170 78 168 88" stroke="url(#caramelDrizzle)" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Brand Tag -->
+    <rect x="130" y="170" width="60" height="20" rx="4" fill="rgba(43, 29, 22, 0.8)"/>
+    <text x="160" y="184" font-family="'Inter', sans-serif" font-weight="800" font-size="8.5" fill="#D9A87C" text-anchor="middle" letter-spacing="1">SNE KAFE</text>
+  </g>
+</svg>
+
