@@ -21,11 +21,13 @@
     </div>
 
     <NuxtPage />
-    <CartDrawer />
-    <FavoritesDrawer />
-    <FullMenuModal />
-    <ProductDetailModal />
-    <ToastNotification />
+    <ClientOnly>
+      <CartDrawer />
+      <FavoritesDrawer />
+      <FullMenuModal />
+      <ProductDetailModal />
+      <ToastNotification />
+    </ClientOnly>
   </div>
 </template>
 

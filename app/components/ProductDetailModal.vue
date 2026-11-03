@@ -331,8 +331,9 @@ const close = () => {
 </script>
 
 <template>
-  <teleport to="body">
-    <!-- Backdrop with Smooth Blur -->
+  <ClientOnly>
+    <teleport to="body">
+      <!-- Backdrop with Smooth Blur -->
     <transition
       enter-active-class="transition duration-300 ease-out"
       enter-from-class="opacity-0 backdrop-blur-none"
@@ -736,6 +737,7 @@ const close = () => {
       </div>
     </transition>
   </teleport>
+</ClientOnly>
 </template>
 
 <style scoped>

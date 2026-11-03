@@ -231,11 +231,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Outer group anchored directly to liquid surface (160, liquidTopY) -->
   <g
-    v-if="withCream || isPiped"
-    :transform="`translate(${160 + (tiltY / 15) * 4}, ${liquidTopY}) rotate(${tiltY * 0.2})`"
     class="cream-topping-group pointer-events-none select-none"
+    :style="{ display: (withCream || isPiped) ? 'inline' : 'none' }"
+    :transform="`translate(${160 + (tiltY / 15) * 4}, ${liquidTopY}) rotate(${tiltY * 0.2})`"
   >
     <!-- Soft Contact Shadow & Cream Meniscus Anchor on Coffee Surface -->
     <ellipse

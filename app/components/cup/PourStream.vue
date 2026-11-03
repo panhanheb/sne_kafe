@@ -99,7 +99,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <g class="pour-stream-group pointer-events-none">
+  <g
+    class="pour-stream-group pointer-events-none"
+    :style="{ display: isPouring ? 'inline' : 'none' }"
+  >
     <!-- Flowing Espresso Jet -->
     <path
       ref="streamEl"
