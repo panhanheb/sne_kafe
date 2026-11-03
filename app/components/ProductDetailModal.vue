@@ -7,16 +7,15 @@ import {
   Minus,
   Sparkles,
   ShoppingBag,
-  Heart,
-  Flame,
   Check,
-  RotateCcw,
   Coffee,
-  Info
+  Eye,
+  RotateCcw
 } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
 import type { CartCustomization } from '~/stores/cart'
+import InteractiveGlassCup from './InteractiveGlassCup.vue'
 
 const cartStore = useCartStore()
 const { t, isKhmer } = useI18n()
@@ -26,7 +25,7 @@ const product = computed(() => cartStore.selectedProductForDetail)
 
 // Customization State
 const selectedSize = ref<'S' | 'M' | 'L'>('M')
-const selectedIce = ref<string>('regular')
+const selectedIce = ref<'none' | 'less' | 'regular' | 'extra'>('regular')
 const selectedSweetness = ref<string>('50%')
 const withCream = ref(false)
 const withExtraShot = ref(false)
@@ -34,113 +33,89 @@ const withCocoa = ref(false)
 const withCaramel = ref(false)
 const quantity = ref(1)
 
+// Empty Cup vs Crafted Drink Preview Mode
+const isCupEmpty = ref(false)
+
 // Animation Triggers
-const isIceDropping = ref(false)
-const isCreamSwirling = ref(false)
 const isEspressoPouring = ref(false)
-const isToppingShowering = ref(false)
 const isOrderAdded = ref(false)
 
 // 3D Tilt State
 const tiltX = ref(0)
 const tiltY = ref(0)
-const isHoveringCup = ref(false)
 
 // Reset state when a new product opens
-watch(() => cartStore.selectedProductForDetail, (newProduct) => {
-  if (newProduct) {
-    selectedSize.value = 'M'
-    selectedIce.value = newProduct.category === 'iced' ? 'regular' : 'none'
-    selectedSweetness.value = '50%'
-    withCream.value = newProduct.id === 'mocha'
-    withExtraShot.value = false
-    withCocoa.value = newProduct.id === 'cappuccino'
-    withCaramel.value = newProduct.id === 'macchiato'
-    quantity.value = 1
-    isOrderAdded.value = false
+watch(
+  () => cartStore.selectedProductForDetail,
+  (newProduct) => {
+    if (newProduct) {
+      selectedSize.value = 'M'
+      selectedIce.value = newProduct.category === 'iced' ? 'regular' : 'none'
+      selectedSweetness.value = '50%'
+      withCream.value = newProduct.id === 'mocha'
+      withExtraShot.value = false
+      withCocoa.value = newProduct.id === 'cappuccino'
+      withCaramel.value = newProduct.id === 'macchiato'
+      quantity.value = 1
+      isOrderAdded.value = false
+      isCupEmpty.value = false
+      isEspressoPouring.value = false
+    }
   }
-})
+)
 
-// Mouse 3D Tilt handlers
+// Mouse 3D Tilt handlers with smooth physics
 const handleMouseMove = (e: MouseEvent) => {
   const el = e.currentTarget as HTMLElement
   if (!el) return
   const rect = el.getBoundingClientRect()
-  const centerX = rect.left + rect.width / 2
-  const centerY = rect.top + rect.height / 2
-  const mouseX = e.clientX - centerX
-  const mouseY = e.clientY - centerY
+  const mouseX = e.clientX - (rect.left + rect.width / 2)
+  const mouseY = e.clientY - (rect.top + rect.height / 2)
 
-  tiltX.value = -((mouseY / (rect.height / 2)) * 14)
-  tiltY.value = (mouseX / (rect.width / 2)) * 16
-  isHoveringCup.value = true
+  tiltX.value = -Math.round((mouseY / (rect.height / 2)) * 12)
+  tiltY.value = Math.round((mouseX / (rect.width / 2)) * 14)
 }
 
 const handleMouseLeave = () => {
   tiltX.value = 0
   tiltY.value = 0
-  isHoveringCup.value = false
 }
 
 // Interactive triggers
-const setIce = (level: string) => {
+const setIce = (level: 'none' | 'less' | 'regular' | 'extra') => {
+  isCupEmpty.value = false
   selectedIce.value = level
-  if (level !== 'none') {
-    isIceDropping.value = false
-    // Force re-trigger animation
-    nextTick(() => {
-      isIceDropping.value = true
-      setTimeout(() => {
-        isIceDropping.value = false
-      }, 1200)
-    })
-  }
 }
 
 const toggleCream = () => {
+  isCupEmpty.value = false
   withCream.value = !withCream.value
-  if (withCream.value) {
-    isCreamSwirling.value = false
-    nextTick(() => {
-      isCreamSwirling.value = true
-      setTimeout(() => {
-        isCreamSwirling.value = false
-      }, 1100)
-    })
-  }
 }
 
 const toggleExtraShot = () => {
+  isCupEmpty.value = false
   withExtraShot.value = !withExtraShot.value
   if (withExtraShot.value) {
-    isEspressoPouring.value = false
-    nextTick(() => {
-      isEspressoPouring.value = true
-      setTimeout(() => {
-        isEspressoPouring.value = false
-      }, 1400)
-    })
+    isEspressoPouring.value = true
+    setTimeout(() => {
+      isEspressoPouring.value = false
+    }, 1200)
   }
 }
 
 const toggleCocoa = () => {
+  isCupEmpty.value = false
   withCocoa.value = !withCocoa.value
-  if (withCocoa.value) {
-    isToppingShowering.value = true
-    setTimeout(() => {
-      isToppingShowering.value = false
-    }, 800)
-  }
 }
 
 const toggleCaramel = () => {
+  isCupEmpty.value = false
   withCaramel.value = !withCaramel.value
-  if (withCaramel.value) {
-    isToppingShowering.value = true
-    setTimeout(() => {
-      isToppingShowering.value = false
-    }, 800)
-  }
+}
+
+// Reset / Empty cup toggle
+const toggleEmptyCup = () => {
+  isCupEmpty.value = !isCupEmpty.value
 }
 
 // Dynamic Price Calculation
@@ -166,17 +141,6 @@ const totalPrice = computed(() => {
 
 const formattedTotalPrice = computed(() => {
   return `$${totalPrice.value.toFixed(2)}`
-})
-
-const totalPriceKhr = computed(() => {
-  return ((totalPrice.value * 4000).toLocaleString('en-US')) + ' ៛'
-})
-
-// Scale factor based on cup size
-const cupScale = computed(() => {
-  if (selectedSize.value === 'S') return 0.88
-  if (selectedSize.value === 'L') return 1.12
-  return 1.0
 })
 
 // Add to Cart
@@ -241,7 +205,7 @@ const close = () => {
             <X class="w-5 h-5" />
           </button>
 
-          <!-- LEFT COLUMN: Interactive 3D Drink Showcase -->
+          <!-- LEFT COLUMN: Interactive Liquid Glass Cup & 3D Physics Showcase -->
           <div
             class="lg:w-1/2 p-6 sm:p-10 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#2B1D16]/50 to-[#1A1009]/80 border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden"
             @mousemove="handleMouseMove"
@@ -253,7 +217,7 @@ const close = () => {
               :class="withCream ? 'bg-amber-400/20' : 'bg-teal-accent/20'"
             />
 
-            <!-- Top Tag & Rating Pill -->
+            <!-- Top Tag: Rating Pill & Empty/Fill Interactive Switch -->
             <div class="w-full flex items-center justify-between z-20">
               <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill text-xs font-bold text-white shadow-sm">
                 <Star class="w-3.5 h-3.5 fill-[#EAA34B] text-[#EAA34B]" />
@@ -261,125 +225,45 @@ const close = () => {
                 <span class="text-coffee-muted font-normal">({{ product.reviewsCount || 128 }})</span>
               </div>
 
-              <!-- Badge if any -->
-              <span
-                v-if="product.badge"
-                class="text-[11px] font-semibold px-3 py-1 rounded-full bg-teal-accent/15 text-teal-accent border border-teal-accent/30 shadow-sm"
+              <!-- Interactive Empty/Filled Cup Toggle Pill -->
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer border active:scale-95"
+                :class="isCupEmpty
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/40 shadow-sm'
+                  : 'bg-white/10 text-coffee-sand border-white/15 hover:bg-white/15'"
+                @click="toggleEmptyCup"
               >
-                {{ product.badge }}
-              </span>
+                <RotateCcw v-if="isCupEmpty" class="w-3.5 h-3.5 animate-spin-once" />
+                <Eye v-else class="w-3.5 h-3.5 text-teal-accent" />
+                <span :class="isKhmer ? 'font-khmer' : ''">
+                  {{ isCupEmpty ? (isKhmer ? 'កែវទទេ (Empty)' : 'Empty Cup') : (isKhmer ? 'ភេសជ្ជៈពេញ' : 'Filled Cup') }}
+                </span>
+              </button>
             </div>
 
-            <!-- 3D Spatial Cup Canvas -->
-            <div class="relative w-full h-80 sm:h-96 flex items-center justify-center perspective-1000 my-4 z-10">
-              <!-- Tilting Wrapper -->
-              <div
-                class="relative flex items-center justify-center transition-transform duration-200 ease-out preserve-3d"
-                :style="{
-                  transform: `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${cupScale})`,
-                }"
-              >
-                <!-- Liquid Ripple when ice/pour triggers -->
-                <div
-                  v-if="isIceDropping || isEspressoPouring"
-                  class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 rounded-full border-2 border-teal-accent/40 animate-ripple pointer-events-none"
-                />
-
-                <!-- 3D Espresso Pour Stream -->
-                <div
-                  v-if="isEspressoPouring"
-                  class="absolute -top-32 left-1/2 -translate-x-1/2 w-3 bg-gradient-to-b from-[#3B1E10] via-[#5C341C] to-[#251006] rounded-full animate-pour z-30 shadow-[0_0_12px_rgba(92,52,28,0.8)]"
-                />
-
-                <!-- 3D Swirling Whipped Cream Crown -->
-                <div
-                  v-if="withCream"
-                  class="absolute -top-16 left-1/2 -translate-x-1/2 w-32 h-28 pointer-events-none z-30 flex items-center justify-center"
-                  :class="{ 'animate-cream-swirl': isCreamSwirling }"
-                >
-                  <svg viewBox="0 0 160 140" class="w-full h-full filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]">
-                    <defs>
-                      <linearGradient id="creamGloss" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#FFFFFF" />
-                        <stop offset="45%" stop-color="#FFFDF9" />
-                        <stop offset="80%" stop-color="#F7ECE0" />
-                        <stop offset="100%" stop-color="#E5D1BE" />
-                      </linearGradient>
-                      <linearGradient id="chocSyrup" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#461E0F" />
-                        <stop offset="100%" stop-color="#1F0A03" />
-                      </linearGradient>
-                    </defs>
-                    <!-- Cream swirl tiers -->
-                    <path d="M25 125 C25 90 50 80 80 75 C110 80 135 90 135 125 Z" fill="url(#creamGloss)" />
-                    <path d="M38 100 C42 65 60 50 80 40 C100 50 118 65 122 100 Z" fill="url(#creamGloss)" />
-                    <path d="M55 65 C62 38 72 25 80 12 C88 25 98 38 105 65 Z" fill="url(#creamGloss)" />
-                    <!-- Swirl ridges -->
-                    <path d="M45 110 Q80 85 115 110" stroke="#EFE2D4" stroke-width="4" stroke-linecap="round" fill="none" />
-                    <path d="M55 80 Q80 60 105 80" stroke="#EFE2D4" stroke-width="4" stroke-linecap="round" fill="none" />
-                    <path d="M68 50 Q80 35 92 50" stroke="#EFE2D4" stroke-width="3" stroke-linecap="round" fill="none" />
-                    <!-- Chocolate Syrup Drizzle -->
-                    <path d="M42 98 Q60 115 80 95 Q100 75 120 102" stroke="url(#chocSyrup)" stroke-width="3.5" stroke-linecap="round" fill="none" class="animate-drizzle" />
-                    <path d="M60 65 Q80 80 98 60" stroke="url(#chocSyrup)" stroke-width="3" stroke-linecap="round" fill="none" class="animate-drizzle" />
-                  </svg>
-                </div>
-
-                <!-- 3D Translucent Falling Ice Cubes -->
-                <div v-if="selectedIce !== 'none'" class="absolute inset-0 pointer-events-none z-20">
-                  <!-- Ice Cube 1 -->
-                  <div
-                    class="absolute top-1/3 left-1/4 w-10 h-10 rounded-lg backdrop-blur-sm border border-white/60 bg-white/35 shadow-[0_4px_12px_rgba(255,255,255,0.3)] transform rotate-12"
-                    :class="isIceDropping ? 'animate-ice-drop-1' : 'animate-ice-bob'"
-                  >
-                    <div class="absolute inset-1 rounded bg-gradient-to-br from-white/70 via-transparent to-teal-accent/20" />
-                  </div>
-
-                  <!-- Ice Cube 2 -->
-                  <div
-                    class="absolute top-2/5 right-1/4 w-9 h-9 rounded-lg backdrop-blur-sm border border-white/60 bg-white/30 shadow-[0_4px_12px_rgba(255,255,255,0.25)] transform -rotate-15"
-                    :class="isIceDropping ? 'animate-ice-drop-2' : 'animate-ice-bob'"
-                    style="animation-delay: 0.6s;"
-                  >
-                    <div class="absolute inset-1 rounded bg-gradient-to-tr from-white/60 via-transparent to-coffee-sand/20" />
-                  </div>
-
-                  <!-- Ice Cube 3 (If Extra Ice) -->
-                  <div
-                    v-if="selectedIce === 'extra'"
-                    class="absolute top-1/4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-lg backdrop-blur-sm border border-white/60 bg-white/40 shadow-[0_4px_10px_rgba(255,255,255,0.3)] transform rotate-45"
-                    :class="isIceDropping ? 'animate-ice-drop-3' : 'animate-ice-bob'"
-                    style="animation-delay: 1.2s;"
-                  >
-                    <div class="absolute inset-1 rounded bg-gradient-to-b from-white/75 to-transparent" />
-                  </div>
-                </div>
-
-                <!-- 3D Topping Cocoa Powder / Sprinkles -->
-                <div v-if="withCocoa || withCaramel" class="absolute top-20 left-1/2 -translate-x-1/2 w-28 h-12 pointer-events-none z-30">
-                  <div class="flex items-center justify-around w-full h-full animate-dust">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#4A2613] shadow-sm" />
-                    <span class="w-1 h-1 rounded-full bg-[#EAA34B] shadow-sm" />
-                    <span class="w-2 h-2 rounded-full bg-[#361A0C] shadow-sm" />
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#EAA34B] shadow-sm" />
-                    <span class="w-1 h-1 rounded-full bg-[#4A2613] shadow-sm" />
-                  </div>
-                </div>
-
-                <!-- Main Cup Image (Smooth & Clean) -->
-                <NuxtImg
-                  :src="product.image"
-                  :alt="product.name"
-                  width="220"
-                  height="220"
-                  class="w-56 sm:w-64 h-auto object-contain filter drop-shadow-[0_16px_30px_rgba(0,0,0,0.4)] pointer-events-none transition-transform duration-300"
-                />
-              </div>
+            <!-- 3D Spatial Cup Canvas with Transparent Glass Tumbler -->
+            <div class="relative w-full my-4 z-10 flex items-center justify-center min-h-[340px]">
+              <InteractiveGlassCup
+                :product-id="product.id"
+                :product-name="product.name"
+                :size="selectedSize"
+                :ice-level="selectedIce"
+                :with-cream="withCream"
+                :with-extra-shot="withExtraShot"
+                :with-cocoa="withCocoa"
+                :with-caramel="withCaramel"
+                :is-pouring="isEspressoPouring"
+                :tilt-x="tiltX"
+                :tilt-y="tiltY"
+                :is-empty="isCupEmpty"
+              />
             </div>
 
-            <!-- Spatial 3D Hint -->
+            <!-- Bottom Spatial 3D Hint -->
             <div class="flex items-center gap-2 text-[11px] text-coffee-muted/70 z-20">
               <Sparkles class="w-3.5 h-3.5 text-teal-accent" />
-              <span>{{ isKhmer ? 'អូសដើម្បីមើលមុំ 3D នៃកែវ' : 'Hover / touch to tilt in 3D' }}</span>
+              <span>{{ isKhmer ? 'អូសដើម្បីមើលមុំ 3D នៃកែវកែវថ្លា' : 'Hover / touch to tilt the glass cup in 3D' }}</span>
             </div>
           </div>
 
@@ -434,7 +318,7 @@ const close = () => {
                     :class="selectedSize === size
                       ? 'liquid-glass-button text-teal-darkText shadow-sm'
                       : 'text-coffee-muted hover:text-white hover:bg-white/5'"
-                    @click="selectedSize = size"
+                    @click="selectedSize = size; isCupEmpty = false"
                   >
                     <span>{{ size }}</span>
                     <span class="text-[10px] font-normal opacity-80 font-mono">
@@ -444,7 +328,7 @@ const close = () => {
                 </div>
               </div>
 
-              <!-- 2. Ice Selection with 3D tumble animation -->
+              <!-- 2. Ice Selection with Animated Submerged 3D Cubes -->
               <div>
                 <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2.5">
                   <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'កម្រិតទឹកកក (Ice):' : 'Ice Level:' }}</span>
@@ -459,7 +343,7 @@ const close = () => {
                       { id: 'less', label: isKhmer ? 'តិច' : 'Less', icon: '50%' },
                       { id: 'regular', label: isKhmer ? 'ធម្មតា' : 'Regular', icon: '100%' },
                       { id: 'extra', label: isKhmer ? 'ច្រើន' : 'Extra', icon: '120%' },
-                    ]"
+                    ] as const"
                     :key="ice.id"
                     type="button"
                     class="py-2 px-1 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5 border"
@@ -496,7 +380,7 @@ const close = () => {
                 </div>
               </div>
 
-              <!-- 4. Interactive 3D Add-ons (Cream, Extra Shot, Toppings) -->
+              <!-- 4. Interactive 3D Add-ons (Whipped Cream, Extra Shot, Cocoa & Caramel Drizzle) -->
               <div class="space-y-2.5 pt-1">
                 <span class="text-xs font-bold text-coffee-sand block" :class="isKhmer ? 'font-khmer' : ''">
                   {{ isKhmer ? 'បន្ថែមពិសេស (Add-ons):' : 'Special Add-ons:' }}
@@ -508,7 +392,7 @@ const close = () => {
                     type="button"
                     class="p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex items-center justify-between group"
                     :class="withCream
-                      ? 'bg-amber-500/15 border-amber-500/40 text-white'
+                      ? 'bg-amber-500/15 border-amber-500/40 text-white shadow-sm'
                       : 'bg-black/30 border-white/10 text-coffee-muted hover:border-white/20'"
                     @click="toggleCream"
                   >
@@ -532,7 +416,7 @@ const close = () => {
                     type="button"
                     class="p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex items-center justify-between group"
                     :class="withExtraShot
-                      ? 'bg-teal-accent/15 border-teal-accent/40 text-white'
+                      ? 'bg-teal-accent/15 border-teal-accent/40 text-white shadow-sm'
                       : 'bg-black/30 border-white/10 text-coffee-muted hover:border-white/20'"
                     @click="toggleExtraShot"
                   >
@@ -552,7 +436,7 @@ const close = () => {
                   </button>
                 </div>
 
-                <!-- Secondary Topping Toggles (Cocoa / Caramel) -->
+                <!-- Secondary Topping Toggles (Cocoa Powder / Caramel Drizzle) -->
                 <div class="grid grid-cols-2 gap-2.5 pt-1">
                   <!-- Cocoa Dusting -->
                   <button
