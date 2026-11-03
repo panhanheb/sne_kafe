@@ -54,10 +54,10 @@ const navigateTo = (href: string) => {
 </script>
 
 <template>
-  <header class="fixed top-2.5 sm:top-4 left-0 right-0 z-40 px-3 sm:px-6 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+  <header class="fixed top-2.5 sm:top-4 left-0 right-0 z-40 px-3 sm:px-6 transition-all duration-300">
     <div
-      class="max-w-6xl mx-auto flex items-center justify-between gap-3 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
-      :class="isScrolled ? 'shadow-[0_20px_50px_rgba(0,0,0,0.7)] bg-black/65 scale-[0.99] border-white/25' : 'shadow-[0_14px_38px_rgba(0,0,0,0.45)]'"
+      class="max-w-6xl mx-auto flex items-center justify-between gap-3 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill transition-all duration-300"
+      :class="isScrolled ? 'shadow-[0_16px_40px_rgba(0,0,0,0.5)] bg-[#1A100A]/90' : 'shadow-[0_10px_30px_rgba(0,0,0,0.35)]'"
     >
       <!-- Logo: ស្នេហ៍កាហ្វេ (Sne Kafe) -->
       <a href="#hero" class="flex items-center gap-2.5 group select-none cursor-pointer" @click.prevent="navigateTo('#hero')">
