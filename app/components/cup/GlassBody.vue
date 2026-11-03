@@ -235,3 +235,4 @@ const props = defineProps<{
   animation: steamRise1 3.5s 1.2s ease-in-out infinite;
 }
 </style>
+

@@ -55,15 +55,28 @@ function updateTilt() {
 }
 
 // Reset & Barista "Build" Intro Sequence when a new product opens
+let introTimers: ReturnType<typeof setTimeout>[] = []
+
+function clearIntroTimers() {
+  introTimers.forEach(id => clearTimeout(id))
+  introTimers = []
+}
+
 watch(
   () => cartStore.selectedProductForDetail,
   (newProduct) => {
+    clearIntroTimers()
     if (newProduct) {
       selectedSize.value = 'M'
       selectedSweetness.value = '50%'
       quantity.value = 1
       isOrderAdded.value = false
       isEspressoPouring.value = false
+
+      if (newProduct.category === 'bakery') {
+        isCupEmpty.value = false
+        return
+      }
 
       // 1. Start with clean empty glass
       isCupEmpty.value = true
@@ -74,21 +87,24 @@ watch(
       withCaramel.value = false
 
       // 2. Liquid fills in (80ms)
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         isCupEmpty.value = false
       }, 80)
 
       // 3. Drop default ice (260ms)
-      setTimeout(() => {
-        selectedIce.value = newProduct.category === 'iced' ? 'regular' : 'none'
+      const isDrinkIced = newProduct.id.includes('iced') || newProduct.id.includes('cold') || newProduct.category === 'iced'
+      const t2 = setTimeout(() => {
+        selectedIce.value = isDrinkIced ? 'regular' : 'none'
       }, 260)
 
       // 4. Barista default toppings (520ms)
-      setTimeout(() => {
-        withCream.value = newProduct.id === 'mocha'
-        withCocoa.value = newProduct.id === 'cappuccino'
-        withCaramel.value = newProduct.id === 'macchiato'
+      const t3 = setTimeout(() => {
+        withCream.value = newProduct.id.includes('mocha')
+        withCocoa.value = newProduct.id.includes('cappuccino')
+        withCaramel.value = newProduct.id.includes('macchiato')
       }, 520)
+
+      introTimers.push(t1, t2, t3)
     }
   }
 )
@@ -347,7 +363,26 @@ const close = () => {
 
             <!-- 3D Spatial Cup Canvas with Transparent Glass Tumbler -->
             <div class="relative w-full my-4 z-10 flex items-center justify-center min-h-[340px]">
+              <!-- Bakery Item Display -->
+              <div
+                v-if="product.category === 'bakery'"
+                class="relative w-full h-80 flex flex-col items-center justify-center"
+              >
+                <div class="relative w-64 h-64 flex items-center justify-center group">
+                  <div class="absolute inset-0 rounded-full bg-amber-500/15 blur-2xl pointer-events-none" />
+                  <NuxtImg
+                    :src="product.image"
+                    :alt="product.name"
+                    width="260"
+                    height="260"
+                    class="w-full h-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              <!-- Interactive Glass Cup for Drinks -->
               <InteractiveGlassCup
+                v-else
                 :product-id="product.id"
                 :product-name="product.name"
                 :size="selectedSize"
@@ -403,8 +438,8 @@ const close = () => {
               </div>
             </div>
 
-            <!-- Customizer Controls -->
-            <div class="space-y-5">
+            <!-- Customizer Controls for Drinks -->
+            <div v-if="product.category !== 'bakery'" class="space-y-5">
               <!-- 1. Size Selection (S / M / L) -->
               <div>
                 <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2.5">
@@ -564,6 +599,18 @@ const close = () => {
                     <span v-if="withCaramel" class="text-teal-accent font-bold">✓</span>
                   </button>
                 </div>
+              </div>
+            </div>
+
+            <!-- Bakery Serving Options -->
+            <div v-else class="space-y-4 py-4">
+              <div class="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-2">
+                <span class="text-xs font-bold text-coffee-sand block" :class="isKhmer ? 'font-khmer' : ''">
+                  {{ isKhmer ? 'សេវាកម្មដុតកម្ដៅ (Serving Option):' : 'Bakery Serving Option:' }}
+                </span>
+                <p class="text-xs text-[#BFA48E] leading-relaxed" :class="isKhmer ? 'font-khmer' : ''">
+                  {{ isKhmer ? 'នំប៉័ងដុតក្តៅៗថ្មីៗពីចង្ក្រាន ស្រួយស្រទាប់ខាងក្រៅ និងឈ្ងុយប៊័រខាងក្នុង ជូនលោកអ្នកភ្លាមៗ។' : 'Freshly toasted warm upon request for maximum flakiness and aroma.' }}
+                </p>
               </div>
             </div>
 
