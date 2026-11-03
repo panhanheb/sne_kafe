@@ -46,17 +46,17 @@ const filteredProducts = computed(() => {
     >
       <div
         v-if="cartStore.isFullMenuOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xl"
         @click.self="cartStore.closeFullMenu()"
       >
         <div
-          class="relative w-full max-w-6xl h-[92vh] rounded-[2.5rem] border border-[#442E20] shadow-2xl flex flex-col overflow-hidden bg-[#1E130D]"
+          class="relative w-full max-w-6xl h-[92vh] rounded-[2.5rem] liquid-glass-modal flex flex-col overflow-hidden"
         >
           <!-- Modal Header -->
-          <div class="p-6 sm:p-8 border-b border-[#3D281C] bg-[#1A100A]/90 shrink-0 z-30">
+          <div class="p-6 sm:p-8 border-b border-white/10 bg-black/30 backdrop-blur-xl shrink-0 z-30">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-accent/15 text-teal-accent text-xs font-semibold mb-2">
+                <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full liquid-glass-pill text-teal-accent text-xs font-semibold mb-2">
                   <Sparkles class="w-3.5 h-3.5" />
                   <span>{{ t.fullMenu.tag }}</span>
                 </div>
@@ -77,7 +77,7 @@ const filteredProducts = computed(() => {
               <!-- Close button -->
               <button
                 type="button"
-                class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors"
+                class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
                 @click="cartStore.closeFullMenu()"
                 aria-label="Close menu modal"
               >
@@ -94,7 +94,7 @@ const filteredProducts = computed(() => {
                   v-model="searchQuery"
                   type="text"
                   :placeholder="t.fullMenu.searchPlaceholder"
-                  class="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#2A1C15] border border-coffee-sand/20 text-xs sm:text-sm text-coffee-cream placeholder:text-coffee-muted/70 focus:outline-none focus:border-teal-accent transition-colors"
+                  class="w-full pl-10 pr-4 py-2.5 rounded-full liquid-glass-pill text-xs sm:text-sm text-coffee-cream placeholder:text-coffee-muted/70 focus:outline-none focus:border-teal-accent transition-colors"
                   :class="isKhmer ? 'font-khmer' : ''"
                 >
                 <button
@@ -107,16 +107,16 @@ const filteredProducts = computed(() => {
                 </button>
               </div>
 
-              <!-- Category filter pills -->
+              <!-- Category filter pills (Liquid Glass Pills) -->
               <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 <button
                   v-for="cat in categories"
                   :key="cat.id"
                   type="button"
-                  class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 border"
+                  class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer"
                   :class="selectedCategory === cat.id
-                    ? 'bg-teal-accent text-teal-darkText border-teal-accent shadow-sm'
-                    : 'bg-[#2A1C15] text-coffee-muted border-[#442E20] hover:text-coffee-sand hover:border-coffee-sand/40'"
+                    ? 'liquid-glass-button text-teal-darkText shadow-sm'
+                    : 'liquid-glass-pill text-coffee-muted hover:text-coffee-sand hover:bg-white/5'"
                   @click="selectedCategory = cat.id"
                 >
                   {{ cat.label }}

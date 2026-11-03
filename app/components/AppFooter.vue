@@ -69,10 +69,10 @@ const scrollToTop = () => {
           </a>
         </nav>
 
-        <!-- Back to Top Button -->
+        <!-- Back to Top Button (Liquid Glass Pill) -->
         <button
           type="button"
-          class="p-3 rounded-full glass-card hover:border-teal-accent/50 text-coffee-sand hover:text-teal-accent transition-all duration-200 active:scale-95"
+          class="p-3 rounded-full liquid-glass-pill hover:border-teal-accent/50 text-coffee-sand hover:text-teal-accent transition-all duration-200 active:scale-95 cursor-pointer"
           aria-label="Back to top"
           @click="scrollToTop"
         >

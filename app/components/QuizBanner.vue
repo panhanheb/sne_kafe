@@ -10,15 +10,15 @@ const isQuizOpen = ref(false)
 <template>
   <section id="promo" class="relative py-16 sm:py-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
-      <!-- Wide Glass Card -->
-      <div class="relative glass-card rounded-4xl p-8 sm:p-12 lg:p-16 overflow-visible border border-coffee-sand/20 shadow-glass">
+      <!-- Wide Liquid Glass Card -->
+      <div class="relative liquid-glass-card rounded-4xl p-8 sm:p-12 lg:p-16 overflow-visible shadow-glass">
         <!-- Background subtle glow -->
-        <div class="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-teal-accent/10 blur-3xl pointer-events-none" />
+        <div class="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-teal-accent/15 blur-3xl pointer-events-none" />
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <!-- Text and CTA Button -->
           <div class="lg:col-span-7 space-y-5 text-center lg:text-left relative z-20">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coffee-dark/80 border border-coffee-sand/20 text-xs font-semibold text-teal-accent">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full liquid-glass-pill text-xs font-semibold text-teal-accent">
               <Sparkles class="w-3.5 h-3.5" />
               <span>{{ t.quiz.tag }}</span>
             </div>
@@ -40,7 +40,7 @@ const isQuizOpen = ref(false)
             <div class="pt-2">
               <button
                 type="button"
-                class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-bold text-sm sm:text-base tracking-wide shadow-glow transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full liquid-glass-button font-bold text-sm sm:text-base tracking-wide cursor-pointer"
                 @click="isQuizOpen = true"
               >
                 <HelpCircle class="w-5 h-5 stroke-[2.2]" />

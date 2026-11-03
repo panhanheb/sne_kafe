@@ -73,7 +73,7 @@ const features = computed(() => [
           <div
             v-for="feature in features.filter(f => f.side === 'left')"
             :key="feature.num"
-            class="relative glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
+            class="relative liquid-glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">
@@ -115,10 +115,10 @@ const features = computed(() => [
             </div>
           </div>
 
-          <!-- Teal Order Button -->
+          <!-- Teal Order Button (Liquid Glass) -->
           <button
             type="button"
-            class="mt-6 px-12 py-4 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-extrabold text-sm sm:text-base tracking-wide shadow-glow transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+            class="mt-6 px-12 py-4 rounded-full liquid-glass-button font-extrabold text-sm sm:text-base tracking-wide cursor-pointer"
             @click="cartStore.openCart()"
           >
             {{ t.about.orderBtn }}
@@ -130,7 +130,7 @@ const features = computed(() => [
           <div
             v-for="feature in features.filter(f => f.side === 'right')"
             :key="feature.num"
-            class="relative glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
+            class="relative liquid-glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">

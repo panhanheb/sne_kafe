@@ -25,7 +25,7 @@ const handleOpenFullMenu = () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
       <!-- Section Header -->
       <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-14">
-        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full glass-pill text-xs font-semibold text-teal-accent mb-3">
+        <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full liquid-glass-pill text-xs font-semibold text-teal-accent mb-3">
           <Sparkles class="w-3.5 h-3.5" />
           <span>{{ t.menu.tag }}</span>
         </div>
@@ -54,15 +54,15 @@ const handleOpenFullMenu = () => {
         </div>
       </div>
 
-      <!-- Underlined link below: "View Full Menu →" (as in design screenshot) -->
+      <!-- Button below: "View Full Menu →" (Liquid Glass link pill) -->
       <div class="mt-14 sm:mt-18 text-center">
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 text-[#D9A87C] hover:text-teal-accent font-medium text-sm sm:text-base border-b border-[#D9A87C]/60 hover:border-teal-accent pb-0.5 transition-all group cursor-pointer"
+          class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full liquid-glass-pill text-coffee-sand hover:text-white hover:border-teal-accent/50 font-medium text-sm sm:text-base transition-all group cursor-pointer hover:scale-105"
           @click="handleOpenFullMenu"
         >
           <span :class="isKhmer ? 'font-khmer' : ''">{{ t.menu.viewMenu }}</span>
-          <span class="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          <span class="text-teal-accent transition-transform duration-200 group-hover:translate-x-1">→</span>
         </button>
       </div>
     </div>

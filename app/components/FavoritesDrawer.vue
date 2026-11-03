@@ -43,12 +43,12 @@ const handleOpenMenu = () => {
     >
       <div
         v-if="cartStore.isFavoritesOpen"
-        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md"
+        class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl"
         @click="cartStore.closeFavorites()"
       />
     </transition>
 
-    <!-- Slide-in Drawer -->
+    <!-- Slide-in Drawer (Liquid Glass) -->
     <transition
       enter-active-class="transition duration-300 ease-out transform"
       enter-from-class="translate-x-full"
@@ -59,12 +59,12 @@ const handleOpenMenu = () => {
     >
       <div
         v-if="cartStore.isFavoritesOpen"
-        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-[#20140D] border-l border-[#442E20] shadow-2xl flex flex-col justify-between overflow-hidden"
+        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md liquid-glass-modal flex flex-col justify-between overflow-hidden"
       >
         <!-- Header -->
-        <div class="p-6 border-b border-[#3D281C] flex items-center justify-between bg-[#1A100A]/80 shrink-0">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between bg-black/30 backdrop-blur-xl shrink-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center text-red-500">
+            <div class="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center text-red-500 shadow-[0_0_12px_rgba(239,68,68,0.3)]">
               <Heart class="w-5 h-5 fill-current" />
             </div>
             <div>
@@ -82,7 +82,7 @@ const handleOpenMenu = () => {
 
           <button
             type="button"
-            class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors"
+            class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
             @click="cartStore.closeFavorites()"
             aria-label="Close favorites"
           >
@@ -126,7 +126,7 @@ const handleOpenMenu = () => {
           <div class="pb-2">
             <button
               type="button"
-              class="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-extrabold text-xs tracking-wide transition-all shadow-glow active:scale-98 cursor-pointer"
+              class="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-full liquid-glass-button font-extrabold text-xs tracking-wide cursor-pointer"
               @click="handleAddAll"
             >
               <ShoppingBag class="w-4 h-4" />

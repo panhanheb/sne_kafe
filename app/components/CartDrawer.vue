@@ -33,12 +33,12 @@ const closeAndReset = () => {
     >
       <div
         v-if="cartStore.isOpen"
-        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md"
+        class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl"
         @click="closeAndReset"
       />
     </transition>
 
-    <!-- Slide-in Drawer -->
+    <!-- Slide-in Drawer (Liquid Glass) -->
     <transition
       enter-active-class="transition duration-300 ease-out transform"
       enter-from-class="translate-x-full"
@@ -49,12 +49,12 @@ const closeAndReset = () => {
     >
       <div
         v-if="cartStore.isOpen"
-        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-[#20140D] border-l border-[#442E20] shadow-2xl flex flex-col justify-between overflow-hidden"
+        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg liquid-glass-modal flex flex-col justify-between overflow-hidden"
       >
         <!-- Header -->
-        <div class="p-6 border-b border-[#3D281C] flex items-center justify-between bg-[#1A100A]/80 shrink-0">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between bg-black/30 backdrop-blur-xl shrink-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-teal-accent/15 flex items-center justify-center text-teal-accent">
+            <div class="w-9 h-9 rounded-full bg-teal-accent/20 flex items-center justify-center text-teal-accent shadow-[0_0_12px_rgba(111,168,163,0.3)]">
               <ShoppingBag class="w-5 h-5" />
             </div>
             <div>
@@ -72,7 +72,7 @@ const closeAndReset = () => {
 
           <button
             type="button"
-            class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors"
+            class="p-2.5 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
             @click="closeAndReset"
             aria-label="Close cart"
           >
@@ -310,7 +310,7 @@ const closeAndReset = () => {
 
           <button
             type="button"
-            class="w-full py-4 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-extrabold text-sm tracking-wide shadow-glow transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+            class="w-full py-4 rounded-full liquid-glass-button font-extrabold text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2"
             @click="handleCheckout"
           >
             <Receipt class="w-4 h-4 stroke-[2.5]" />

@@ -23,11 +23,11 @@ const { isKhmer } = useI18n()
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="pointer-events-auto rounded-2xl p-4 glass-card border border-teal-accent/30 shadow-2xl flex items-center justify-between gap-3 bg-[#241711]/95 backdrop-blur-2xl"
+          class="pointer-events-auto rounded-2xl p-4 liquid-glass-card shadow-2xl flex items-center justify-between gap-3 border border-white/20"
         >
           <div class="flex items-center gap-3 min-w-0">
             <!-- Icon -->
-            <div class="w-8 h-8 rounded-full bg-teal-accent/20 text-teal-accent flex items-center justify-center shrink-0">
+            <div class="w-8 h-8 rounded-full bg-teal-accent/20 text-teal-accent flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(111,168,163,0.3)]">
               <CheckCircle2 v-if="toast.type === 'success'" class="w-5 h-5" />
               <AlertCircle v-else-if="toast.type === 'error'" class="w-5 h-5 text-red-400" />
               <Info v-else class="w-5 h-5 text-coffee-sand" />
@@ -56,7 +56,7 @@ const { isKhmer } = useI18n()
             <button
               v-if="toast.actionText && toast.onAction"
               type="button"
-              class="px-3 py-1 rounded-full bg-teal-accent/20 hover:bg-teal-accent text-teal-accent hover:text-teal-darkText text-xs font-bold transition-colors"
+              class="px-3 py-1 rounded-full liquid-glass-button text-xs font-bold transition-transform active:scale-95 cursor-pointer"
               @click="toast.onAction(); remove(toast.id)"
             >
               {{ toast.actionText }}

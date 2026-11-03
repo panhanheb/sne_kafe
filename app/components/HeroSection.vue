@@ -56,8 +56,8 @@ const scrollToMenu = () => {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
         <!-- Left Column: Copy & CTA -->
         <div class="lg:col-span-6 space-y-6 sm:space-y-8 text-center lg:text-left">
-          <!-- Subtle tag / badge -->
-          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-pill text-xs font-medium text-coffee-sand border border-coffee-sand/20 shadow-sm">
+          <!-- Subtle tag / badge (Liquid Glass Pill) -->
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-pill text-xs font-semibold text-coffee-sand">
             <Sparkles class="w-3.5 h-3.5 text-teal-accent animate-pulse" />
             <span>{{ t.hero.tag }}</span>
           </div>
@@ -86,7 +86,7 @@ const scrollToMenu = () => {
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
             <button
               type="button"
-              class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-bold text-sm sm:text-base tracking-wide shadow-glow transition-all duration-300 hover:scale-105 active:scale-95 group"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full liquid-glass-button font-bold text-sm sm:text-base tracking-wide cursor-pointer group"
               @click="scrollToMenu"
             >
               <span>{{ t.hero.btnChoose }}</span>
@@ -95,7 +95,7 @@ const scrollToMenu = () => {
 
             <a
               href="#about"
-              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 rounded-full text-coffee-sand hover:text-white font-medium text-sm transition-colors border border-coffee-sand/20 hover:border-coffee-sand/50"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 rounded-full liquid-glass-pill text-coffee-sand hover:text-white font-medium text-sm transition-all hover:scale-105"
             >
               {{ t.hero.btnAbout }}
             </a>

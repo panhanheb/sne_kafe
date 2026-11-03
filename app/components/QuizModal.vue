@@ -80,16 +80,16 @@ const handleAddToCart = () => {
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xl"
         @click.self="emit('close')"
       >
         <div
-          class="relative w-full max-w-lg glass-card rounded-3xl p-6 sm:p-8 border border-coffee-sand/30 shadow-2xl animate-scaleIn overflow-hidden"
+          class="relative w-full max-w-lg liquid-glass-modal rounded-3xl p-6 sm:p-8 shadow-2xl animate-scaleIn overflow-hidden"
         >
           <!-- Close button -->
           <button
             type="button"
-            class="absolute top-5 right-5 p-2 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors"
+            class="absolute top-5 right-5 p-2 rounded-full text-coffee-muted hover:text-white hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
             @click="emit('close')"
           >
             <X class="w-5 h-5" />
@@ -177,7 +177,7 @@ const handleAddToCart = () => {
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
                 type="button"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-bold text-sm tracking-wide shadow-glow transition-all"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full liquid-glass-button font-bold text-sm tracking-wide cursor-pointer"
                 @click="handleAddToCart"
               >
                 <ShoppingBag class="w-4 h-4" />
