@@ -28,6 +28,9 @@ watch(
         onComplete: () => {
           emit('streamDone')
           activeTl.value = null
+          if (impactRingEl.value) {
+            gsap.set(impactRingEl.value, { opacity: 0 })
+          }
         }
       })
       activeTl.value = tl
@@ -36,8 +39,8 @@ watch(
       tl.fromTo(
         streamEl.value,
         {
-          strokeDasharray: 200,
-          strokeDashoffset: 200,
+          strokeDasharray: 220,
+          strokeDashoffset: 220,
           opacity: 0,
         },
         {
@@ -54,32 +57,36 @@ watch(
       })
       // Stream tails off
       .to(streamEl.value, {
-        strokeDashoffset: -200,
+        strokeDashoffset: -220,
         opacity: 0,
         duration: 0.35,
         ease: 'power2.out',
       })
 
-      // Impact ring expands continuously during pour
-      tl.fromTo(
-        impactRingEl.value,
-        {
-          scale: 0.3,
-          opacity: 0.9,
-          transformOrigin: '160px ' + props.liquidTopY + 'px',
-        },
-        {
-          scale: 2.2,
-          opacity: 0,
-          duration: 0.6,
-          repeat: 2,
-          ease: 'power1.out',
-        },
-        0.25
-      )
+      // Surface impact ripple ring
+      if (impactRingEl.value) {
+        tl.fromTo(
+          impactRingEl.value,
+          {
+            opacity: 0.9,
+            attr: { rx: 6, ry: 2 },
+          },
+          {
+            opacity: 0,
+            attr: { rx: 28, ry: 8 },
+            duration: 0.65,
+            repeat: 1,
+            ease: 'power1.out',
+          },
+          0.2
+        )
+      }
     } else {
       if (streamEl.value) {
         gsap.to(streamEl.value, { opacity: 0, duration: 0.2 })
+      }
+      if (impactRingEl.value) {
+        gsap.set(impactRingEl.value, { opacity: 0 })
       }
     }
   }
@@ -87,11 +94,12 @@ watch(
 
 onBeforeUnmount(() => {
   if (activeTl.value) activeTl.value.kill()
+  if (impactRingEl.value) gsap.set(impactRingEl.value, { opacity: 0 })
 })
 </script>
 
 <template>
-  <g class="pour-stream-group pointer-events-none">
+  <g v-if="isPouring" class="pour-stream-group pointer-events-none">
     <!-- Flowing Espresso Jet -->
     <path
       ref="streamEl"
@@ -109,13 +117,12 @@ onBeforeUnmount(() => {
       ref="impactRingEl"
       cx="160"
       :cy="liquidTopY"
-      rx="12"
-      ry="4"
+      rx="6"
+      ry="2"
       fill="none"
-      stroke="rgba(255, 255, 255, 0.75)"
+      stroke="rgba(255, 255, 255, 0.8)"
       stroke-width="1.8"
       opacity="0"
     />
   </g>
 </template>
-

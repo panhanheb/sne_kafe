@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
 import gsap from 'gsap'
 
 const props = defineProps<{
@@ -10,183 +10,108 @@ const props = defineProps<{
   isEmpty: boolean
 }>()
 
-// Component Refs
 const creamContainerEl = ref<SVGGElement | null>(null)
-const tier1El = ref<SVGGElement | null>(null)
-const tier2El = ref<SVGGElement | null>(null)
-const tier3El = ref<SVGGElement | null>(null)
-const nozzleEl = ref<SVGGElement | null>(null)
 const creamHaloEl = ref<SVGEllipseElement | null>(null)
-
 const activeTl = ref<gsap.core.Timeline | null>(null)
 const isPiped = ref(false)
 
-// Watch withCream prop to trigger realistic barista piping or melting removal
 watch(
   () => props.withCream,
-  (val) => {
+  async (val) => {
     if (activeTl.value) {
       activeTl.value.kill()
+      activeTl.value = null
     }
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        activeTl.value = null
-      }
-    })
-    activeTl.value = tl
 
     if (val && !props.isEmpty) {
       isPiped.value = true
+      await nextTick()
 
-      // Reset initial states before animation
-      if (creamContainerEl.value && tier1El.value && tier2El.value && tier3El.value && nozzleEl.value && creamHaloEl.value) {
-        gsap.set(creamContainerEl.value, { opacity: 1, scale: 1, y: 0 })
-        gsap.set(tier1El.value, { opacity: 0, scale: 0.2, transformOrigin: '160px 88px' })
-        gsap.set(tier2El.value, { opacity: 0, scale: 0.1, transformOrigin: '160px 65px' })
-        gsap.set(tier3El.value, { opacity: 0, scale: 0.1, y: 20, transformOrigin: '160px 35px' })
-        gsap.set(creamHaloEl.value, { opacity: 0, scale: 0.4, transformOrigin: '160px 90px' })
-        gsap.set(nozzleEl.value, { opacity: 0, x: 200, y: -60, rotation: 15, scale: 0.9 })
+      if (creamContainerEl.value && creamHaloEl.value) {
+        // Reset to initial extrusion state
+        gsap.set(creamContainerEl.value, {
+          opacity: 0,
+          scaleX: 0.35,
+          scaleY: 0.08,
+          transformOrigin: '0px 0px',
+        })
+        gsap.set(creamHaloEl.value, {
+          opacity: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          transformOrigin: '0px 0px',
+        })
 
-        // 1. Barista Stainless Steel Star Nozzle swoops in
-        tl.to(nozzleEl.value, {
+        const tl = gsap.timeline({
+          onComplete: () => {
+            activeTl.value = null
+          }
+        })
+        activeTl.value = tl
+
+        // 1. Soft-serve cream begins extruding upwards and expanding onto coffee surface
+        tl.to(creamContainerEl.value, {
           opacity: 1,
-          x: 195,
-          y: 75,
-          rotation: -8,
-          duration: 0.32,
+          scaleX: 1.05,
+          scaleY: 1.1,
+          duration: 0.5,
           ease: 'power2.out',
         })
-
-        // 2. Nozzle pipes Tier 1 (Base Ring around cup rim)
-        .to(nozzleEl.value, {
-          x: 125,
-          y: 84,
-          rotation: 12,
-          duration: 0.45,
-          ease: 'sine.inOut',
-        })
-        .to(
-          tier1El.value,
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.48,
-            ease: 'back.out(1.4)',
-          },
-          `-0.4`
-        )
-        // Milk contact halo diffuses into coffee
+        // Contact shadow & milk halo diffuses smoothly into coffee
         .to(
           creamHaloEl.value,
           {
             opacity: 0.85,
-            scale: 1,
-            duration: 0.4,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 0.42,
             ease: 'power1.out',
           },
-          `-0.35`
+          0.08
         )
-
-        // 3. Nozzle spirals inward and upward to pipe Tier 2 (Middle Swirl)
-        .to(nozzleEl.value, {
-          x: 172,
-          y: 52,
-          rotation: -14,
-          duration: 0.42,
-          ease: 'sine.inOut',
-        })
-        .to(
-          tier2El.value,
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.44,
-            ease: 'back.out(1.5)',
-          },
-          `-0.38`
-        )
-
-        // 4. Nozzle swirls to center peak to pipe Tier 3 (Crown & Tip)
-        .to(nozzleEl.value, {
-          x: 160,
-          y: 18,
-          rotation: 0,
-          duration: 0.38,
-          ease: 'sine.out',
-        })
-        .to(
-          tier3El.value,
-          {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.42,
-            ease: 'back.out(1.6)',
-          },
-          `-0.32`
-        )
-
-        // 5. Authentic Barista Pull-off Flick (Nozzle lifts away)
-        .to(nozzleEl.value, {
-          x: 163,
-          y: 6,
-          duration: 0.12,
-          ease: 'power1.in',
-        })
-        .to(nozzleEl.value, {
-          x: 170,
-          y: -90,
-          opacity: 0,
-          duration: 0.28,
-          ease: 'power2.in',
-        })
-
-        // 6. Luscious Organic Cream Jiggle & Recoil (settling onto coffee)
+        // 2. Realistic Dairy Cream Recoil & Jiggle (natural soft-serve settlement)
         .to(
           creamContainerEl.value,
           {
-            scaleY: 1.07,
-            scaleX: 0.96,
-            duration: 0.12,
-            ease: 'sine.in',
-          },
-          `-0.25`
-        )
-        .to(
-          creamContainerEl.value,
-          {
-            scaleY: 1,
             scaleX: 1,
-            duration: 0.65,
-            ease: 'elastic.out(1.4, 0.4)',
-          }
+            scaleY: 1,
+            duration: 0.72,
+            ease: 'elastic.out(1.2, 0.36)',
+          },
+          `-0.08`
         )
       }
     } else {
-      // Removing cream: melts and dissolves smoothly into coffee
-      if (creamContainerEl.value && creamHaloEl.value) {
-        tl.to(creamContainerEl.value, {
-          scaleY: 0.2,
-          scaleX: 0.7,
-          y: 20,
-          opacity: 0,
-          duration: 0.45,
-          ease: 'power2.in',
+      if (creamContainerEl.value && creamHaloEl.value && isPiped.value) {
+        const tl = gsap.timeline({
           onComplete: () => {
             isPiped.value = false
+            activeTl.value = null
           }
+        })
+        activeTl.value = tl
+
+        // Cream smoothly melts and dissolves down into the coffee
+        tl.to(creamContainerEl.value, {
+          scaleX: 0.7,
+          scaleY: 0.1,
+          opacity: 0,
+          duration: 0.35,
+          ease: 'power2.in',
         })
         .to(
           creamHaloEl.value,
           {
             opacity: 0,
-            scale: 0.6,
-            duration: 0.3,
+            scaleX: 0.6,
+            scaleY: 0.6,
+            duration: 0.28,
             ease: 'power1.out',
           },
-          `-0.3`
+          `-0.2`
         )
+      } else {
+        isPiped.value = false
       }
     }
   },
@@ -194,199 +119,211 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (activeTl.value) activeTl.value.kill()
+  if (activeTl.value) {
+    activeTl.value.kill()
+    activeTl.value = null
+  }
 })
 </script>
 
 <template>
-  <g class="cream-topping-group pointer-events-none">
-    <!-- ==========================================
-         1. CONTACT SHADOW & COFFEE MILK DIFFUSION HALO
-         ========================================== -->
+  <!-- Outer group anchored directly to liquid surface (160, liquidTopY) -->
+  <g
+    v-if="withCream || isPiped"
+    :transform="`translate(${160 + (tiltY / 15) * 4}, ${liquidTopY}) rotate(${tiltY * 0.2})`"
+    class="cream-topping-group pointer-events-none select-none"
+  >
+    <!-- Soft Contact Shadow & Cream Meniscus Anchor on Coffee Surface -->
     <ellipse
       ref="creamHaloEl"
-      cx="160"
-      cy="90"
-      rx="63"
-      ry="16"
-      fill="rgba(245, 235, 222, 0.4)"
-      stroke="rgba(255, 255, 255, 0.45)"
-      stroke-width="1.5"
+      cx="0"
+      cy="2"
+      rx="58"
+      ry="13"
+      fill="rgba(30, 15, 6, 0.45)"
       filter="url(#shadowBlur)"
       opacity="0"
     />
-    <ellipse
-      v-if="withCream && isPiped"
-      cx="160"
-      cy="91"
-      rx="61"
-      ry="14.5"
-      fill="rgba(35, 18, 8, 0.38)"
-      filter="url(#shadowBlur)"
-    />
 
-    <!-- ==========================================
-         2. MULTI-TIER REALISTIC WHIPPED CREAM BILLOWS
-         ========================================== -->
-    <g
-      ref="creamContainerEl"
-      :style="{
-        transform: `translate(${(tiltY / 15) * 3}px, ${(tiltX / 12) * -1.5}px)`,
-        display: withCream ? 'block' : 'none',
-        transformOrigin: '160px 90px',
-      }"
-      class="transition-transform duration-200 ease-out"
-    >
+    <!-- Inner Cream Container animated by GSAP from origin (0, 0) -->
+    <g ref="creamContainerEl" style="transform-origin: 0px 0px">
       <!-- ====================================================
-           TIER 1: WIDE VOLUPTUOUS BASE LOBES (Rests on Coffee Rim)
+           1. BASE BLEND POOL (Touches coffee with warm dairy transition)
            ==================================================== -->
-      <g ref="tier1El">
-        <!-- Deep Under-Crevice Occlusion Shadows -->
-        <path
-          d="M 101,90 Q 116,73 130,86 Q 148,70 165,85 Q 185,72 200,85 Q 212,78 221,90"
-          stroke="url(#creamDeepShadow)"
-          stroke-width="8"
-          stroke-linecap="round"
-          fill="none"
-          filter="url(#creamDeepBlur)"
-        />
-
-        <!-- Base Lobe 1 (Left Rim Pillow) -->
-        <path
-          d="M 98,90 C 98,66 118,58 132,74 C 122,86 112,94 98,90 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Base Lobe 2 (Left-Center Lobe) -->
-        <path
-          d="M 124,80 C 126,55 148,48 160,68 C 146,78 135,86 124,80 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Base Lobe 3 (Right-Center Lobe) -->
-        <path
-          d="M 152,70 C 160,48 184,52 196,74 C 182,82 168,82 152,70 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Base Lobe 4 (Right Rim Pillow) -->
-        <path
-          d="M 188,76 C 198,60 220,66 222,90 C 208,94 198,88 188,76 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-
-        <!-- Tier 1 Specular Star Ridges -->
-        <path d="M 108,84 Q 128,70 148,80" stroke="url(#creamHighlight)" stroke-width="2.6" stroke-linecap="round" fill="none" />
-        <path d="M 134,72 Q 158,56 182,68" stroke="url(#creamHighlight)" stroke-width="2.8" stroke-linecap="round" fill="none" />
-      </g>
-
-      <!-- ====================================================
-           TIER 2: SPIRALING MIDDLE LAYER (Stacked Above Base)
-           ==================================================== -->
-      <g ref="tier2El">
-        <!-- Mid Occlusion Shadow -->
-        <path
-          d="M 115,70 Q 138,52 160,64 Q 182,50 205,68"
-          stroke="url(#creamDeepShadow)"
-          stroke-width="6"
-          stroke-linecap="round"
-          fill="none"
-          filter="url(#creamDeepBlur)"
-        />
-
-        <!-- Mid Lobe Left -->
-        <path
-          d="M 116,68 C 120,44 142,34 158,48 C 144,58 130,65 116,68 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Mid Lobe Center -->
-        <path
-          d="M 142,50 C 150,28 174,30 186,52 C 172,60 156,60 142,50 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Mid Lobe Right -->
-        <path
-          d="M 174,54 C 184,36 200,42 204,64 C 194,70 184,66 174,54 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-
-        <!-- Tier 2 Specular Star Ridges -->
-        <path d="M 124,54 Q 148,36 172,48" stroke="url(#creamHighlight)" stroke-width="2.8" stroke-linecap="round" fill="none" />
-        <path d="M 152,44 Q 174,30 196,44" stroke="url(#creamHighlight)" stroke-width="2.4" stroke-linecap="round" fill="none" />
-      </g>
-
-      <!-- ====================================================
-           TIER 3: CROWN SOFT-SERVE PEAK & CURLED TIP HORN
-           ==================================================== -->
-      <g ref="tier3El">
-        <!-- Crown Peak Billow Left -->
-        <path
-          d="M 136,40 C 142,18 156,10 162,26 C 154,34 144,38 136,40 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Crown Peak Billow Right -->
-        <path
-          d="M 150,30 C 156,10 170,12 174,30 C 166,34 158,34 150,30 Z"
-          fill="url(#realCreamBody)"
-          stroke="rgba(255, 255, 255, 0.95)"
-          stroke-width="1.2"
-        />
-        <!-- Hand-Piped Swirling Curled Tip Peak -->
-        <path
-          d="M 152,24 C 156,8 166,-6 163,-10 C 158,-9 154,0 152,12 Z"
-          fill="#FFFFFF"
-          stroke="rgba(255, 255, 255, 0.98)"
-          stroke-width="1.1"
-          filter="drop-shadow(0 2px 4px rgba(200, 180, 160, 0.4))"
-        />
-
-        <!-- Crown Specular Glints -->
-        <path d="M 142,32 Q 158,16 172,26" stroke="url(#creamHighlight)" stroke-width="2.2" stroke-linecap="round" fill="none" />
-        <path d="M 155,14 Q 161,0 163,-8" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" fill="none" />
-      </g>
-    </g>
-
-    <!-- ==========================================
-         3. REALISTIC STAINLESS STEEL STAR NOZZLE (Barista Dispenser Tip)
-         ========================================== -->
-    <g ref="nozzleEl" opacity="0" class="filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]">
-      <!-- Metallic Canister Pipe Tube -->
-      <path
-        d="M -14,-75 L 14,-75 L 11,-22 L -11,-22 Z"
-        fill="url(#metallicTubeGrad)"
-        stroke="#64748B"
-        stroke-width="1"
+      <ellipse
+        cx="0"
+        cy="0"
+        rx="56"
+        ry="13"
+        fill="url(#creamBaseContactGrad)"
+        opacity="0.95"
       />
-      <!-- Specular Highlight Streak on Tube -->
-      <line x1="-3" y1="-75" x2="-2" y2="-22" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2" />
 
-      <!-- Serrated Star Piping Tip Nozzle -->
+      <!-- ====================================================
+           2. SOLID VOLUMETRIC SCULPTED CREAM SILHOUETTE
+              (100% continuous, zero gaps, perfectly opaque foundation)
+           ==================================================== -->
       <path
-        d="M -11,-22 L 11,-22 L 7,0 L -7,0 Z"
-        fill="url(#metallicStarTipGrad)"
-        stroke="#475569"
+        d="M -56,0
+           C -62,-14 -56,-26 -46,-34
+           C -52,-44 -42,-56 -32,-64
+           C -36,-72 -22,-84 -8,-94
+           C -2,-99 6,-101 12,-95
+           C 16,-91 14,-85 10,-81
+           C 20,-75 28,-63 26,-53
+           C 38,-47 48,-35 44,-24
+           C 54,-18 58,-8 56,0
+           C 38,10 -38,10 -56,0 Z"
+        fill="url(#realCreamBody)"
+        stroke="rgba(255, 255, 255, 0.85)"
+        stroke-width="1.2"
+        filter="drop-shadow(0 4px 10px rgba(40, 20, 8, 0.28))"
+      />
+
+      <!-- Ambient Occlusion Shadow for Coil Separation -->
+      <path
+        d="M -48,-28 Q 0,-18 46,-26 Q 0,-34 -48,-28 Z"
+        fill="url(#creamCoilShadow)"
+        opacity="0.75"
+      />
+      <path
+        d="M -34,-58 Q 0,-50 30,-54 Q 0,-64 -34,-58 Z"
+        fill="url(#creamCoilShadow)"
+        opacity="0.7"
+      />
+
+      <!-- ====================================================
+           3. TIER 1: FLUTED STAR-NOZZLE BASE BILLOWS (Bottom Ring)
+           ==================================================== -->
+      <!-- Left Outer Fluted Lobe -->
+      <path
+        d="M -54,-2 C -60,-16 -44,-28 -32,-24 C -42,-14 -46,-2 -54,-2 Z"
+        fill="url(#creamTier1Lobe)"
+        stroke="rgba(255, 255, 255, 0.9)"
+        stroke-width="1.4"
+      />
+      <!-- Mid-Left Billow Lobe -->
+      <path
+        d="M -36,-22 C -24,-30 -4,-28 4,-20 C -8,-10 -24,-12 -36,-22 Z"
+        fill="url(#creamTier1Lobe)"
+        stroke="rgba(255, 255, 255, 0.9)"
+        stroke-width="1.4"
+      />
+      <!-- Mid-Right Billow Lobe -->
+      <path
+        d="M 2,-20 C 16,-28 36,-26 44,-16 C 32,-8 14,-10 2,-20 Z"
+        fill="url(#creamTier1Lobe)"
+        stroke="rgba(255, 255, 255, 0.9)"
+        stroke-width="1.4"
+      />
+      <!-- Right Outer Fluted Lobe -->
+      <path
+        d="M 38,-18 C 50,-24 58,-12 54,0 C 46,2 34,-8 38,-18 Z"
+        fill="url(#creamTier1Lobe)"
+        stroke="rgba(255, 255, 255, 0.9)"
+        stroke-width="1.4"
+      />
+
+      <!-- Tier 1 Soft Star-Crevice Shadows -->
+      <path d="M -34,-20 Q -38,-10 -42,2" stroke="url(#creamCreviceGrad)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8" />
+      <path d="M 2,-18 Q -2,-8 -4,4" stroke="url(#creamCreviceGrad)" stroke-width="2.8" stroke-linecap="round" fill="none" opacity="0.85" />
+      <path d="M 38,-16 Q 34,-6 32,4" stroke="url(#creamCreviceGrad)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8" />
+
+      <!-- Tier 1 Specular Ridge Glints -->
+      <path d="M -48,-16 Q -40,-24 -32,-22" stroke="url(#creamSpecularGlint)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+      <path d="M -22,-24 Q -8,-28 2,-18" stroke="url(#creamSpecularGlint)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+      <path d="M 12,-20 Q 26,-26 40,-16" stroke="url(#creamSpecularGlint)" stroke-width="2.4" stroke-linecap="round" fill="none" />
+
+      <!-- ====================================================
+           4. TIER 2: SWIRLING MID-COIL BODY (Smooth Spiral Wave)
+           ==================================================== -->
+      <!-- Mid-Coil Solid Spiral Body -->
+      <path
+        d="M -44,-32
+           C -48,-48 -28,-58 -10,-52
+           C 10,-46 32,-46 38,-34
+           C 22,-38 2,-40 -12,-36
+           C -26,-32 -38,-28 -44,-32 Z"
+        fill="url(#creamTier2Body)"
+        stroke="rgba(255, 255, 255, 0.92)"
+        stroke-width="1.3"
+      />
+      <!-- Mid-Tier Fluted Star Ridge Lines -->
+      <path
+        d="M -28,-36 C -20,-50 -2,-52 14,-44"
+        stroke="url(#creamSpecularGlint)"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        fill="none"
+      />
+      <path
+        d="M -8,-50 Q 12,-52 26,-42"
+        stroke="url(#creamSpecularGlint)"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        fill="none"
+      />
+      <!-- Mid-Tier Crevice Shadow -->
+      <path
+        d="M -12,-36 Q -6,-46 8,-44"
+        stroke="url(#creamCreviceGrad)"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        fill="none"
+        opacity="0.75"
+      />
+
+      <!-- ====================================================
+           5. TIER 3: CROWN PEAK & CURLED BARISTA SWIRL TIP
+           ==================================================== -->
+      <!-- Crown Swirl Cone -->
+      <path
+        d="M -26,-56
+           C -30,-72 -14,-86 -2,-92
+           C 4,-95 10,-91 8,-84
+           C 16,-76 22,-64 22,-52
+           C 10,-58 -8,-60 -26,-56 Z"
+        fill="url(#creamCrownBody)"
+        stroke="rgba(255, 255, 255, 0.95)"
         stroke-width="1.2"
       />
-      <!-- Fluted Star Teeth on Nozzle Edge -->
-      <polygon points="-7,0 -5,-4 -3,0 -1,-4 1,0 3,-4 5,0 7,-4 7,0" fill="#334155" />
-      <line x1="0" y1="-22" x2="0" y2="-1" stroke="rgba(255, 255, 255, 0.9)" stroke-width="1.5" />
+
+      <!-- Hand-Piped Swirling Curled Tip Horn (The Iconic Barista Flick!) -->
+      <path
+        d="M -4,-86
+           C -6,-95 0,-102 6,-101
+           C 12,-100 13,-93 8,-86
+           C 4,-80 -2,-78 -4,-86 Z"
+        fill="#FFFFFF"
+        stroke="rgba(255, 255, 255, 0.98)"
+        stroke-width="1.4"
+        filter="drop-shadow(0 2px 4px rgba(180, 140, 110, 0.35))"
+      />
+
+      <!-- Crown Specular Glints & Wet Gloss Streak -->
+      <path
+        d="M -18,-64 Q -4,-80 4,-90"
+        stroke="url(#creamSpecularGlint)"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        fill="none"
+      />
+      <path
+        d="M 2,-98 Q 7,-100 9,-94"
+        stroke="#FFFFFF"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        fill="none"
+      />
+      <!-- Soft Cream Crease on Peak -->
+      <path
+        d="M -6,-68 Q 2,-78 6,-84"
+        stroke="url(#creamCreviceGrad)"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        fill="none"
+        opacity="0.7"
+      />
     </g>
   </g>
 </template>
-
-<style scoped>
-/* Gradient defs for stainless steel nozzle */
-</style>
