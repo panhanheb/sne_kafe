@@ -24,7 +24,8 @@ const handleAddToCart = () => {
 
 <template>
   <div
-    class="relative rounded-[2.25rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group mt-16 sm:mt-20 liquid-glass-card select-none overflow-visible"
+    class="relative rounded-[2.25rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group mt-16 sm:mt-20 liquid-glass-card select-none overflow-visible cursor-pointer"
+    @click="cartStore.openProductDetail(product)"
   >
     <!-- Overlapping Cup Image (Clean, prominent, unclipped with smooth soft drop shadow) -->
     <div class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1 z-20 flex items-center justify-center">
@@ -60,7 +61,7 @@ const handleAddToCart = () => {
         type="button"
         class="p-1.5 rounded-full text-coffee-muted hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
         :aria-label="'Favorite ' + product.name"
-        @click="cartStore.toggleFavorite(product.id)"
+        @click.stop="cartStore.toggleFavorite(product.id)"
       >
         <Heart
           class="w-4 h-4 transition-transform duration-200 active:scale-125"
@@ -111,7 +112,7 @@ const handleAddToCart = () => {
           ? 'bg-emerald-500 text-white shadow-md scale-105'
           : 'liquid-glass-button'"
         :aria-label="'Add ' + product.name + ' to cart'"
-        @click="handleAddToCart"
+        @click.stop="handleAddToCart"
       >
         <Check v-if="isAdded" class="w-5 h-5 animate-scaleIn stroke-[3]" />
         <Plus v-else class="w-5 h-5 stroke-[2.8]" />

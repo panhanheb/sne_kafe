@@ -24,6 +24,7 @@
     <CartDrawer />
     <FavoritesDrawer />
     <FullMenuModal />
+    <ProductDetailModal />
     <ToastNotification />
   </div>
 </template>

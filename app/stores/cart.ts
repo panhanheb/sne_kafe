@@ -3,9 +3,20 @@ import type { DisplayProduct } from '~/composables/useProducts'
 import { useToast } from '~/composables/useToast'
 import { useI18n } from '~/composables/useI18n'
 
+export interface CartCustomization {
+  size?: 'S' | 'M' | 'L'
+  iceLevel?: string
+  sweetness?: string
+  cream?: boolean
+  extraShot?: boolean
+  toppings?: string[]
+}
+
 export interface CartItem {
   product: DisplayProduct
   quantity: number
+  customization?: CartCustomization
+  unitPrice?: number
   sugarLevel?: string
   iceLevel?: string
   note?: string
@@ -18,6 +29,8 @@ export const useCartStore = defineStore('cart', () => {
   const isOpen = ref(false)
   const isFavoritesOpen = ref(false)
   const isFullMenuOpen = ref(false)
+  const selectedProductForDetail = ref<DisplayProduct | null>(null)
+  const isProductDetailOpen = ref(false)
   const favorites = ref<string[]>(['cappuccino', 'latte', 'cold-brew'])
   const isOrderSuccess = ref(false)
   const orderType = ref<OrderType>('takeaway')
@@ -117,6 +130,51 @@ export const useCartStore = defineStore('cart', () => {
 
   function toggleFullMenu() {
     isFullMenuOpen.value = !isFullMenuOpen.value
+  }
+
+  // Product Detail Modal controls
+  function openProductDetail(product: DisplayProduct) {
+    selectedProductForDetail.value = product
+    isProductDetailOpen.value = true
+  }
+
+  function closeProductDetail() {
+    isProductDetailOpen.value = false
+    selectedProductForDetail.value = null
+  }
+
+  function addCustomizedItem(product: DisplayProduct, customization: CartCustomization, unitPrice: number, quantity: number = 1) {
+    const noteParts: string[] = []
+    if (customization.size) noteParts.push(`Size ${customization.size}`)
+    if (customization.iceLevel) noteParts.push(customization.iceLevel)
+    if (customization.sweetness) noteParts.push(customization.sweetness)
+    if (customization.cream) noteParts.push('+Whipped Cream')
+    if (customization.extraShot) noteParts.push('+Extra Shot')
+    if (customization.toppings?.length) noteParts.push(customization.toppings.join(', '))
+
+    const customizedProduct: DisplayProduct = {
+      ...product,
+      price: unitPrice,
+      formattedPrice: `$${unitPrice.toFixed(2)}`
+    }
+
+    items.value.push({
+      product: customizedProduct,
+      quantity,
+      customization,
+      unitPrice,
+      note: noteParts.join(' • ')
+    })
+    persist()
+
+    toast.show({
+      title: isKhmer.value ? 'បានបញ្ចូលក្នុងកន្ត្រកជោគជ័យ' : 'Added to your order',
+      message: `${product.name} (${quantity}x • $${(unitPrice * quantity).toFixed(2)})`,
+      type: 'success',
+      duration: 3500,
+      actionText: isKhmer.value ? 'មើលកន្ត្រក' : 'View Cart',
+      onAction: () => openCart(),
+    })
   }
 
   // Cart actions
@@ -235,6 +293,8 @@ export const useCartStore = defineStore('cart', () => {
     isOpen,
     isFavoritesOpen,
     isFullMenuOpen,
+    selectedProductForDetail,
+    isProductDetailOpen,
     favorites,
     isOrderSuccess,
     orderType,
@@ -253,6 +313,9 @@ export const useCartStore = defineStore('cart', () => {
     openFullMenu,
     closeFullMenu,
     toggleFullMenu,
+    openProductDetail,
+    closeProductDetail,
+    addCustomizedItem,
     addItem,
     addAllFavoritesToCart,
     removeItem,
