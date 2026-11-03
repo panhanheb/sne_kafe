@@ -34,7 +34,7 @@ const handleAddToCart = () => {
         width="150"
         height="150"
         loading="lazy"
-        class="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)]"
+        class="w-full h-full object-contain filter drop-shadow-[0_6px_12px_rgba(0,0,0,0.14)]"
       />
     </div>
 

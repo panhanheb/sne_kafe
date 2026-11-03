@@ -1,20 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none">
   <defs>
     <linearGradient id="matchaLayer" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#4F7942"/>
-      <stop offset="35%" stop-color="#6F9D5A"/>
-      <stop offset="55%" stop-color="#D9ECC8"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="15%" stop-color="#FFF8EE"/>
+      <stop offset="35%" stop-color="#E2F0D9"/>
+      <stop offset="50%" stop-color="#93C572"/>
+      <stop offset="70%" stop-color="#558B2F"/>
+      <stop offset="100%" stop-color="#33691E"/>
     </linearGradient>
-    <filter id="matShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.25"/>
+    <filter id="matShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.12"/>
     </filter>
   </defs>
 
   <g filter="url(#matShadow)">
-    <ellipse cx="160" cy="285" rx="80" ry="14" fill="#1C120C" opacity="0.6"/>
     <!-- Glass Body -->
     <path d="M102 75 L126 270 Q128 280 160 280 Q192 280 194 270 L218 75 Z" fill="url(#matchaLayer)"/>
+
+    <!-- Glass base highlight -->
+    <ellipse cx="160" cy="276" rx="34" ry="7" fill="rgba(255,255,255,0.2)"/>
 
     <!-- Ice cubes -->
     <rect x="135" y="110" width="28" height="28" rx="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" transform="rotate(12 149 124)"/>
@@ -23,13 +27,14 @@
     <!-- Glass reflection -->
     <path d="M112 90 L132 265" stroke="rgba(255,255,255,0.45)" stroke-width="3.5" stroke-linecap="round"/>
 
-    <!-- Top foam -->
-    <ellipse cx="160" cy="75" rx="58" ry="16" fill="#3E6133"/>
-    <ellipse cx="160" cy="74" rx="52" ry="13" fill="#588549"/>
+    <!-- Top Foam / Milk Rim -->
+    <ellipse cx="160" cy="75" rx="58" ry="16" fill="#FFFDF9"/>
+    <!-- Matcha powder dust -->
+    <ellipse cx="160" cy="75" rx="26" ry="8" fill="#689F38" opacity="0.8"/>
+    <circle cx="160" cy="75" r="4" fill="#33691E"/>
 
     <!-- Brand Tag -->
-    <rect x="130" y="200" width="60" height="20" rx="4" fill="rgba(43, 29, 22, 0.8)"/>
+    <rect x="130" y="200" width="60" height="20" rx="4" fill="rgba(43, 29, 22, 0.85)"/>
     <text x="160" y="214" font-family="'Inter', sans-serif" font-weight="800" font-size="8.5" fill="#D9A87C" text-anchor="middle" letter-spacing="1">SNE KAFE</text>
   </g>
 </svg>
-

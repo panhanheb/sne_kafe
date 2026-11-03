@@ -77,8 +77,8 @@
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid rgba(217, 168, 124, 0.18);
     box-shadow:
-      0 10px 30px -5px rgba(0, 0, 0, 0.35),
-      0 20px 45px -10px rgba(0, 0, 0, 0.25);
+      0 10px 30px -6px rgba(0, 0, 0, 0.22),
+      0 20px 45px -12px rgba(0, 0, 0, 0.18);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
     overflow: visible;
@@ -86,11 +86,10 @@
 
   .liquid-glass-card:hover {
     border-color: rgba(217, 168, 124, 0.35);
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     box-shadow:
-      0 15px 35px -5px rgba(0, 0, 0, 0.4),
-      0 25px 55px -10px rgba(0, 0, 0, 0.35),
-      0 0 25px rgba(111, 168, 163, 0.12);
+      0 15px 35px -6px rgba(0, 0, 0, 0.28),
+      0 25px 50px -12px rgba(0, 0, 0, 0.22);
   }
 
   /* Smooth Floating Glass Pill */
