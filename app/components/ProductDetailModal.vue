@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import {
   X,
   Star,
@@ -40,31 +40,60 @@ const isCupEmpty = ref(false)
 const isEspressoPouring = ref(false)
 const isOrderAdded = ref(false)
 
-// 3D Tilt State
+// Smooth 3D Tilt State with Lerp
+const targetTiltX = ref(0)
+const targetTiltY = ref(0)
 const tiltX = ref(0)
 const tiltY = ref(0)
+let tiltFrameId: number | null = null
 
-// Reset state when a new product opens
+function updateTilt() {
+  const lerpFactor = 0.12
+  tiltX.value += (targetTiltX.value - tiltX.value) * lerpFactor
+  tiltY.value += (targetTiltY.value - tiltY.value) * lerpFactor
+  tiltFrameId = requestAnimationFrame(updateTilt)
+}
+
+// Reset & Barista "Build" Intro Sequence when a new product opens
 watch(
   () => cartStore.selectedProductForDetail,
   (newProduct) => {
     if (newProduct) {
       selectedSize.value = 'M'
-      selectedIce.value = newProduct.category === 'iced' ? 'regular' : 'none'
       selectedSweetness.value = '50%'
-      withCream.value = newProduct.id === 'mocha'
-      withExtraShot.value = false
-      withCocoa.value = newProduct.id === 'cappuccino'
-      withCaramel.value = newProduct.id === 'macchiato'
       quantity.value = 1
       isOrderAdded.value = false
-      isCupEmpty.value = false
       isEspressoPouring.value = false
+
+      // 1. Start with clean empty glass
+      isCupEmpty.value = true
+      selectedIce.value = 'none'
+      withCream.value = false
+      withExtraShot.value = false
+      withCocoa.value = false
+      withCaramel.value = false
+
+      // 2. Liquid fills in (80ms)
+      setTimeout(() => {
+        isCupEmpty.value = false
+      }, 80)
+
+      // 3. Drop default ice (260ms)
+      setTimeout(() => {
+        selectedIce.value = newProduct.category === 'iced' ? 'regular' : 'none'
+      }, 260)
+
+      // 4. Barista default toppings (520ms)
+      setTimeout(() => {
+        withCream.value = newProduct.id === 'mocha'
+        withCocoa.value = newProduct.id === 'cappuccino'
+        withCaramel.value = newProduct.id === 'macchiato'
+      }, 520)
     }
   }
 )
 
-// Mouse 3D Tilt handlers with smooth physics
+// Mouse & Touch 3D Tilt Handlers
 const handleMouseMove = (e: MouseEvent) => {
   const el = e.currentTarget as HTMLElement
   if (!el) return
@@ -72,19 +101,89 @@ const handleMouseMove = (e: MouseEvent) => {
   const mouseX = e.clientX - (rect.left + rect.width / 2)
   const mouseY = e.clientY - (rect.top + rect.height / 2)
 
-  tiltX.value = -Math.round((mouseY / (rect.height / 2)) * 12)
-  tiltY.value = Math.round((mouseX / (rect.width / 2)) * 14)
+  targetTiltX.value = -Math.max(-14, Math.min(14, (mouseY / (rect.height / 2)) * 14))
+  targetTiltY.value = Math.max(-16, Math.min(16, (mouseX / (rect.width / 2)) * 16))
 }
 
 const handleMouseLeave = () => {
-  tiltX.value = 0
-  tiltY.value = 0
+  targetTiltX.value = 0
+  targetTiltY.value = 0
 }
+
+const handleTouchStart = (e: TouchEvent) => {
+  if (e.touches.length > 0) handleTouchMove(e)
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!e.touches.length) return
+  const touch = e.touches[0]
+  const el = e.currentTarget as HTMLElement
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const touchX = touch.clientX - (rect.left + rect.width / 2)
+  const touchY = touch.clientY - (rect.top + rect.height / 2)
+
+  targetTiltX.value = -Math.max(-14, Math.min(14, (touchY / (rect.height / 2)) * 14))
+  targetTiltY.value = Math.max(-16, Math.min(16, (touchX / (rect.width / 2)) * 16))
+}
+
+const handleTouchEnd = () => {
+  targetTiltX.value = 0
+  targetTiltY.value = 0
+}
+
+// Device Orientation Tilt on mobile devices
+function handleOrientation(e: DeviceOrientationEvent) {
+  if (e.gamma !== null && e.beta !== null) {
+    const normGamma = Math.max(-25, Math.min(25, e.gamma))
+    const normBeta = Math.max(-25, Math.min(25, e.beta - 45))
+    targetTiltY.value = (normGamma / 25) * 14
+    targetTiltX.value = -(normBeta / 25) * 12
+  }
+}
+
+function initDeviceOrientation() {
+  if (!import.meta.client || typeof window === 'undefined') return
+  if (window.DeviceOrientationEvent) {
+    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+      const requestPerm = () => {
+        ;(DeviceOrientationEvent as any).requestPermission()
+          .then((permissionState: string) => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation)
+            }
+          })
+          .catch(() => {})
+        window.removeEventListener('click', requestPerm)
+      }
+      window.addEventListener('click', requestPerm, { once: true })
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation)
+    }
+  }
+}
+
+onMounted(() => {
+  tiltFrameId = requestAnimationFrame(updateTilt)
+  initDeviceOrientation()
+})
+
+onBeforeUnmount(() => {
+  if (tiltFrameId !== null) cancelAnimationFrame(tiltFrameId)
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('deviceorientation', handleOrientation)
+  }
+})
 
 // Interactive triggers
 const setIce = (level: 'none' | 'less' | 'regular' | 'extra') => {
   isCupEmpty.value = false
   selectedIce.value = level
+}
+
+const setSweetness = (sweet: string) => {
+  isCupEmpty.value = false
+  selectedSweetness.value = sweet
 }
 
 const toggleCream = () => {
@@ -207,9 +306,13 @@ const close = () => {
 
           <!-- LEFT COLUMN: Interactive Liquid Glass Cup & 3D Physics Showcase -->
           <div
-            class="lg:w-1/2 p-6 sm:p-10 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#2B1D16]/50 to-[#1A1009]/80 border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden"
+            class="lg:w-1/2 p-6 sm:p-10 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#2B1D16]/50 to-[#1A1009]/80 border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden cursor-grab active:cursor-grabbing"
             @mousemove="handleMouseMove"
             @mouseleave="handleMouseLeave"
+            @touchstart.passive="handleTouchStart"
+            @touchmove.passive="handleTouchMove"
+            @touchend="handleTouchEnd"
+            @touchcancel="handleTouchEnd"
           >
             <!-- Background Ambient Glow behind Drink -->
             <div
@@ -257,13 +360,14 @@ const close = () => {
                 :tilt-x="tiltX"
                 :tilt-y="tiltY"
                 :is-empty="isCupEmpty"
+                :sweetness="selectedSweetness"
               />
             </div>
 
             <!-- Bottom Spatial 3D Hint -->
             <div class="flex items-center gap-2 text-[11px] text-coffee-muted/70 z-20">
               <Sparkles class="w-3.5 h-3.5 text-teal-accent" />
-              <span>{{ isKhmer ? 'អូសដើម្បីមើលមុំ 3D នៃកែវកែវថ្លា' : 'Hover / touch to tilt the glass cup in 3D' }}</span>
+              <span>{{ isKhmer ? 'អូស ឬបង្វិលទូរសព្ទដើម្បីមើលមុំ 3D' : 'Drag or tilt phone to inspect in 3D' }}</span>
             </div>
           </div>
 
@@ -333,16 +437,16 @@ const close = () => {
                 <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2.5">
                   <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'កម្រិតទឹកកក (Ice):' : 'Ice Level:' }}</span>
                   <span class="text-teal-accent text-[11px] font-mono">
-                    {{ selectedIce === 'none' ? 'No Ice (0%)' : selectedIce === 'less' ? 'Less (50%)' : selectedIce === 'regular' ? 'Regular (100%)' : 'Extra (120%)' }}
+                    {{ selectedIce === 'none' ? 'No Ice (0 cubes)' : selectedIce === 'less' ? 'Less (3 cubes)' : selectedIce === 'regular' ? 'Regular (5 cubes)' : 'Extra (7 cubes)' }}
                   </span>
                 </div>
                 <div class="grid grid-cols-4 gap-2">
                   <button
                     v-for="ice in [
-                      { id: 'none', label: isKhmer ? 'គ្មាន' : 'None', icon: '0%' },
-                      { id: 'less', label: isKhmer ? 'តិច' : 'Less', icon: '50%' },
-                      { id: 'regular', label: isKhmer ? 'ធម្មតា' : 'Regular', icon: '100%' },
-                      { id: 'extra', label: isKhmer ? 'ច្រើន' : 'Extra', icon: '120%' },
+                      { id: 'none', label: isKhmer ? 'គ្មាន' : 'None', icon: '0' },
+                      { id: 'less', label: isKhmer ? 'តិច' : 'Less', icon: '3' },
+                      { id: 'regular', label: isKhmer ? 'ធម្មតា' : 'Regular', icon: '5' },
+                      { id: 'extra', label: isKhmer ? 'ច្រើន' : 'Extra', icon: '7' },
                     ] as const"
                     :key="ice.id"
                     type="button"
@@ -353,12 +457,12 @@ const close = () => {
                     @click="setIce(ice.id)"
                   >
                     <span>{{ ice.label }}</span>
-                    <span class="text-[10px] opacity-75 font-mono">{{ ice.icon }}</span>
+                    <span class="text-[10px] opacity-75 font-mono">{{ ice.icon }} {{ isKhmer ? 'ដុំ' : 'cubes' }}</span>
                   </button>
                 </div>
               </div>
 
-              <!-- 3. Sweetness / Sugar Level -->
+              <!-- 3. Sweetness / Sugar Level with Spiral Syrup Animation -->
               <div>
                 <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2.5">
                   <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'កម្រិតផ្អែម (Sweetness):' : 'Sugar Level:' }}</span>
@@ -373,14 +477,14 @@ const close = () => {
                     :class="selectedSweetness === sweet
                       ? 'bg-coffee-sand text-[#1A1009] shadow-sm'
                       : 'text-coffee-muted hover:text-white hover:bg-white/5'"
-                    @click="selectedSweetness = sweet"
+                    @click="setSweetness(sweet)"
                   >
                     {{ sweet }}
                   </button>
                 </div>
               </div>
 
-              <!-- 4. Interactive 3D Add-ons (Whipped Cream, Extra Shot, Cocoa & Caramel Drizzle) -->
+              <!-- 4. Interactive Barista Add-ons (Whipped Cream, Extra Shot, Cocoa & Caramel Drizzle) -->
               <div class="space-y-2.5 pt-1">
                 <span class="text-xs font-bold text-coffee-sand block" :class="isKhmer ? 'font-khmer' : ''">
                   {{ isKhmer ? 'បន្ថែមពិសេស (Add-ons):' : 'Special Add-ons:' }}
