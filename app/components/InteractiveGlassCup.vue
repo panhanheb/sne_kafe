@@ -292,6 +292,23 @@ function handleIceSplash({ x, y }: { x: number; y: number }) {
             <stop offset="100%" stop-color="#C89264" stop-opacity="1" />
           </linearGradient>
 
+          <!-- Stainless Steel Barista Dispenser Star Tip Gradients -->
+          <linearGradient id="metallicTubeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#94A3B8" />
+            <stop offset="25%" stop-color="#E2E8F0" />
+            <stop offset="50%" stop-color="#FFFFFF" />
+            <stop offset="75%" stop-color="#CBD5E1" />
+            <stop offset="100%" stop-color="#64748B" />
+          </linearGradient>
+
+          <linearGradient id="metallicStarTipGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#475569" />
+            <stop offset="30%" stop-color="#CBD5E1" />
+            <stop offset="60%" stop-color="#FFFFFF" />
+            <stop offset="85%" stop-color="#94A3B8" />
+            <stop offset="100%" stop-color="#334155" />
+          </linearGradient>
+
           <!-- Filter Definitions -->
           <filter id="shadowBlur" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="4.5" />
