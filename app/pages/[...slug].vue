@@ -12,3 +12,4 @@ if (!route.path.startsWith('/__nuxt_dev__')) {
 <template>
   <div />
 </template>
+
