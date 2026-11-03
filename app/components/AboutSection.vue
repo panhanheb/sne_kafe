@@ -97,20 +97,20 @@ const features = computed(() => [
           </div>
         </div>
 
-        <!-- Center Cup Image with teal "Заказать" button underneath -->
-        <div class="lg:col-span-4 flex flex-col items-center justify-center my-4 lg:my-0">
-          <div class="relative w-56 sm:w-72 h-64 sm:h-80 flex items-center justify-center">
+        <!-- Center Cup Image with teal order button underneath (Resized to Big) -->
+        <div class="lg:col-span-4 flex flex-col items-center justify-center my-6 lg:my-0 relative z-20">
+          <div class="relative w-72 sm:w-96 lg:w-[420px] h-80 sm:h-[420px] lg:h-[480px] flex items-center justify-center">
             <!-- Glow circle -->
-            <div class="absolute w-48 sm:w-60 h-48 sm:h-60 rounded-full bg-teal-accent/15 blur-2xl -z-10" />
+            <div class="absolute w-64 sm:w-80 lg:w-[360px] h-64 sm:h-80 lg:h-[360px] rounded-full bg-teal-accent/20 blur-3xl -z-10 pointer-events-none" />
 
-            <!-- Center Cup -->
+            <!-- Center Cup - Big & Prominent -->
             <div class="w-full h-full animate-float flex items-center justify-center">
               <NuxtImg
                 src="/images/cup-hero-brown.svg"
                 alt="Sne Kafe signature cup"
-                width="280"
-                height="320"
-                class="w-full h-auto filter drop-shadow-2xl"
+                width="420"
+                height="480"
+                class="w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[410px] h-auto object-contain filter drop-shadow-[0_30px_45px_rgba(0,0,0,0.7)]"
               />
             </div>
           </div>
@@ -118,7 +118,7 @@ const features = computed(() => [
           <!-- Teal Order Button -->
           <button
             type="button"
-            class="mt-6 px-10 py-3.5 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-bold text-sm tracking-wide shadow-glow transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+            class="mt-6 px-12 py-4 rounded-full bg-teal-accent hover:bg-teal-hover text-teal-darkText font-extrabold text-sm sm:text-base tracking-wide shadow-glow transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             @click="cartStore.openCart()"
           >
             {{ t.about.orderBtn }}
