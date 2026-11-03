@@ -73,7 +73,7 @@ const features = computed(() => [
           <div
             v-for="feature in features.filter(f => f.side === 'left')"
             :key="feature.num"
-            class="relative liquid-glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
+            class="relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">
@@ -130,7 +130,7 @@ const features = computed(() => [
           <div
             v-for="feature in features.filter(f => f.side === 'right')"
             :key="feature.num"
-            class="relative liquid-glass-card p-6 sm:p-7 rounded-3xl transition-transform hover:-translate-y-1"
+            class="relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">

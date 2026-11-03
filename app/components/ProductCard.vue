@@ -24,32 +24,32 @@ const handleAddToCart = () => {
 
 <template>
   <div
-    class="relative rounded-[2.25rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 group mt-16 sm:mt-20 liquid-glass-card"
+    class="relative rounded-[2.5rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 group mt-16 sm:mt-20 liquid-glass-card select-none"
   >
     <!-- Overlapping Cup Image (Clean, smooth soft shadow without harsh dark blobs) -->
-    <div class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-500 group-hover:scale-108 group-hover:-translate-y-1.5 z-20 flex items-center justify-center">
+    <div class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:-translate-y-2 z-20 flex items-center justify-center">
       <NuxtImg
         :src="product.image"
         :alt="product.name"
         width="150"
         height="150"
         loading="lazy"
-        class="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.45)]"
+        class="w-full h-full object-contain filter drop-shadow-[0_14px_28px_rgba(0,0,0,0.5)]"
       />
     </div>
 
     <!-- Top Row: Rating Pill (left), Badge (middle), Favorite Heart (right) -->
     <div class="flex items-center justify-between w-full mb-5 z-20">
-      <!-- Rating Badge with Gold Star (Liquid Glass Pill) -->
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full liquid-glass-pill text-xs font-bold text-white">
-        <Star class="w-3.5 h-3.5 fill-[#EAA34B] text-[#EAA34B]" />
+      <!-- Rating Badge with Gold Star (iOS Liquid Glass Pill) -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full liquid-glass-pill text-xs font-bold text-white shadow-sm">
+        <Star class="w-3.5 h-3.5 fill-[#EAA34B] text-[#EAA34B] filter drop-shadow-[0_0_6px_rgba(234,163,75,0.7)]" />
         <span>{{ product.rating.toFixed(1) }}</span>
       </div>
 
-      <!-- Middle Badge (Liquid Glass Teal Pill) -->
+      <!-- Middle Badge (iOS Dynamic Glass Pill) -->
       <span
         v-if="product.badge"
-        class="text-[11px] font-semibold px-3 py-1 rounded-full bg-teal-accent/20 text-teal-accent border border-teal-accent/40 shadow-[0_0_12px_rgba(111,168,163,0.2)] backdrop-blur-md whitespace-nowrap"
+        class="text-[11px] font-semibold px-3 py-1 rounded-full bg-teal-accent/20 text-teal-accent border border-teal-accent/40 shadow-[0_0_14px_rgba(111,168,163,0.3)] backdrop-blur-md whitespace-nowrap"
       >
         {{ product.badge }}
       </span>
@@ -58,13 +58,13 @@ const handleAddToCart = () => {
       <!-- Favorite Heart Toggle -->
       <button
         type="button"
-        class="p-1.5 rounded-full text-coffee-muted hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
+        class="p-1.5 rounded-full text-coffee-muted hover:text-red-400 hover:bg-white/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-75"
         :aria-label="'Favorite ' + product.name"
         @click="cartStore.toggleFavorite(product.id)"
       >
         <Heart
-          class="w-4 h-4 transition-transform duration-200 active:scale-125"
-          :class="cartStore.isFavorite(product.id) ? 'fill-red-500 text-red-500 filter drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]' : 'text-coffee-muted/70 hover:text-white'"
+          class="w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          :class="cartStore.isFavorite(product.id) ? 'fill-red-500 text-red-500 filter drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]' : 'text-coffee-muted/70 hover:text-white'"
         />
       </button>
     </div>
@@ -78,7 +78,7 @@ const handleAddToCart = () => {
         >
           {{ product.name }}
         </h3>
-        <span class="text-[11px] uppercase tracking-widest text-[#8A6D57] font-semibold font-mono">
+        <span class="text-[11px] uppercase tracking-[0.16em] text-[#8A6D57] font-semibold font-mono">
           {{ product.nameEn }}
         </span>
       </div>
@@ -103,12 +103,12 @@ const handleAddToCart = () => {
         </span>
       </div>
 
-      <!-- Round Teal Liquid Glass Add Button -->
+      <!-- Round Teal Liquid Glass Add Button (iOS Spring Scale) -->
       <button
         type="button"
-        class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300"
+        class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.86]"
         :class="isAdded
-          ? 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] scale-105'
+          ? 'bg-emerald-500 text-white shadow-[0_0_24px_rgba(16,185,129,0.7)] scale-105'
           : 'liquid-glass-button'"
         :aria-label="'Add ' + product.name + ' to cart'"
         @click="handleAddToCart"

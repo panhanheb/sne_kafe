@@ -54,11 +54,11 @@ const navigateTo = (href: string) => {
 </script>
 
 <template>
-  <header
-    class="fixed top-0 left-0 right-0 z-40 transition-all duration-300 py-3.5 px-4 sm:px-8"
-    :class="isScrolled ? 'backdrop-blur-2xl bg-[#1A110D]/75 border-b border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.5)] py-3' : 'bg-transparent'"
-  >
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+  <header class="fixed top-2.5 sm:top-4 left-0 right-0 z-40 px-3 sm:px-6 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+    <div
+      class="max-w-6xl mx-auto flex items-center justify-between gap-3 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full liquid-glass-pill transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      :class="isScrolled ? 'shadow-[0_20px_50px_rgba(0,0,0,0.7)] bg-black/65 scale-[0.99] border-white/25' : 'shadow-[0_14px_38px_rgba(0,0,0,0.45)]'"
+    >
       <!-- Logo: ស្នេហ៍កាហ្វេ (Sne Kafe) -->
       <a href="#hero" class="flex items-center gap-2.5 group select-none cursor-pointer" @click.prevent="navigateTo('#hero')">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full liquid-glass-pill flex items-center justify-center text-teal-accent group-hover:scale-110 group-hover:border-teal-accent/60 transition-all duration-300">
@@ -78,13 +78,13 @@ const navigateTo = (href: string) => {
       </a>
 
       <!-- Centered liquid glass pill navigation (Desktop) -->
-      <nav class="hidden md:flex items-center gap-1 px-5 py-1.5 rounded-full liquid-glass-pill shadow-glass">
+      <nav class="hidden md:flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 border border-white/10 shadow-inner">
         <a
           v-for="item in navItems"
           :key="item.href"
           :href="item.href"
-          class="relative px-3.5 py-1.5 text-xs lg:text-sm font-medium transition-all duration-200 cursor-pointer rounded-full"
-          :class="activeNav === item.href ? 'text-teal-accent font-bold bg-white/10 shadow-sm' : 'text-coffee-muted hover:text-coffee-sand hover:bg-white/5'"
+          class="relative px-3.5 py-1.5 text-xs lg:text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer rounded-full"
+          :class="activeNav === item.href ? 'text-teal-accent font-bold bg-white/15 shadow-sm' : 'text-coffee-muted hover:text-coffee-sand hover:bg-white/5'"
           @click.prevent="navigateTo(item.href)"
         >
           {{ item.name }}
@@ -96,7 +96,7 @@ const navigateTo = (href: string) => {
       </nav>
 
       <!-- Right controls: Language Switcher, favorites, cart, order button -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
         <!-- Liquid Language Switcher Pill (Khmer / English) -->
         <div class="flex items-center p-0.5 rounded-full liquid-glass-pill text-xs">
           <button
@@ -122,7 +122,7 @@ const navigateTo = (href: string) => {
         <!-- Favorites button -->
         <button
           type="button"
-          class="relative p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-white/10"
+          class="relative p-2 sm:p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-white/10 active:scale-90"
           :title="locale === 'km' ? 'បញ្ជីចូលចិត្ត' : 'Favorites'"
           @click="cartStore.openFavorites()"
         >
@@ -138,7 +138,7 @@ const navigateTo = (href: string) => {
         <!-- Cart button with Pinia badge counter -->
         <button
           type="button"
-          class="relative p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-white/10"
+          class="relative p-2 sm:p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-white/10 active:scale-90"
           :title="t.cart.title"
           @click="cartStore.openCart()"
         >
