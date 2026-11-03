@@ -24,9 +24,14 @@ const handleAddToCart = () => {
 
 <template>
   <div
-    class="relative rounded-[2.5rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 group mt-16 sm:mt-20 liquid-glass-card select-none"
+    class="relative rounded-[2.5rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 group mt-16 sm:mt-20 liquid-glass-card select-none overflow-visible"
   >
-    <!-- Overlapping Cup Image (Clean, smooth soft shadow without harsh dark blobs) -->
+    <!-- Inner Lens Sheen (Contained inside squircle bounds without clipping top cup) -->
+    <div class="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none z-0">
+      <div class="absolute top-0 -left-[120%] w-[70%] h-full bg-gradient-to-r from-transparent via-white/[0.09] to-transparent transform -skew-x-[22deg] group-hover:left-[160%] transition-[left] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+    </div>
+
+    <!-- Overlapping Cup Image (Clean, prominent, unclipped!) -->
     <div class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:-translate-y-2 z-20 flex items-center justify-center">
       <NuxtImg
         :src="product.image"

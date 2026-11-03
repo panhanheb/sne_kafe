@@ -87,32 +87,7 @@
       0 24px 60px -12px rgba(0, 0, 0, 0.65);
     transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
-    overflow: hidden;
-  }
-
-  /* Specular light sheen flare gliding across glass on hover */
-  .liquid-glass-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -120%;
-    width: 70%;
-    height: 100%;
-    background: linear-gradient(
-      115deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.12) 50%,
-      transparent 100%
-    );
-    transform: skewX(-22deg);
-    transition: left 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-    z-index: 15;
-    border-radius: inherit;
-  }
-
-  .liquid-glass-card:hover::before {
-    left: 160%;
+    overflow: visible;
   }
 
   .liquid-glass-card:hover {
