@@ -1,12 +1,16 @@
 # Nuxt build output
 .nuxt
+.nuxt/
 .output
+.output/
 dist
+dist/
 .nitro
 .cache
 
 # Node dependencies
-.node_modules
+node_modules
+node_modules/
 
 # Logs
 logs
@@ -45,4 +49,3 @@ Thumbs.db
 coverage
 *.lcov
 .nyc_output
-
