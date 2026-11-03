@@ -70,24 +70,22 @@ const isHot = computed(() => {
 // Dynamic Liquid Level & Volume Displacement
 const liquidHeightPercentage = computed(() => {
   if (props.isEmpty) return 0
-  
-  // Standard cafe full cup baseline
-  let pct = 86
-  if (props.size === 'S') pct = 83
-  if (props.size === 'L') pct = 89
+  let pct = 76
+  if (props.size === 'S') pct = 70
+  if (props.size === 'L') pct = 84
 
   // Ice displacement volume
-  if (props.iceLevel === 'less') pct = 85
-  if (props.iceLevel === 'regular') pct = 88
-  if (props.iceLevel === 'extra') pct = 91
+  if (props.iceLevel === 'less') pct += 3
+  if (props.iceLevel === 'regular') pct += 6
+  if (props.iceLevel === 'extra') pct += 9
 
   // Extra shot displacement
-  if (props.withExtraShot) pct += 3
+  if (props.withExtraShot) pct += 4
 
-  // Whipped cream fills drink right up to rim
-  if (props.withCream) pct = Math.max(pct, 88)
+  // Whipped cream fills the cup up to meet the rim
+  if (props.withCream) pct = Math.max(pct, 86)
 
-  return Math.min(pct, 93)
+  return Math.min(pct, 92)
 })
 
 // Liquid Top Y coordinate in SVG viewBox (range: base 310 to top 95)
@@ -256,56 +254,24 @@ function handleIceSplash({ x, y }: { x: number; y: number }) {
             <stop offset="100%" stop-color="transparent" />
           </radialGradient>
 
-          <!-- Photorealistic 3D Whipped Cream System Gradients -->
-          <radialGradient id="creamBaseContactGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FFFDFB" stop-opacity="0.95" />
-            <stop offset="60%" stop-color="#F7EFE4" stop-opacity="0.85" />
-            <stop offset="100%" stop-color="#DFCBBA" stop-opacity="0.4" />
-          </radialGradient>
-
-          <linearGradient id="realCreamBody" x1="20%" y1="0%" x2="80%" y2="100%">
+          <!-- Photorealistic Whipped Cream -->
+          <linearGradient id="realCreamBody" x1="30%" y1="0%" x2="70%" y2="100%">
             <stop offset="0%" stop-color="#FFFFFF" />
             <stop offset="35%" stop-color="#FFFDF9" />
-            <stop offset="65%" stop-color="#FAF1E5" />
-            <stop offset="85%" stop-color="#EFE1CF" />
-            <stop offset="100%" stop-color="#E2D0BC" />
+            <stop offset="70%" stop-color="#FBF2E7" />
+            <stop offset="90%" stop-color="#EFE0CE" />
+            <stop offset="100%" stop-color="#E0CEBA" />
           </linearGradient>
 
-          <linearGradient id="creamCoilShadow" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="rgba(180, 150, 125, 0.45)" />
-            <stop offset="100%" stop-color="rgba(220, 195, 175, 0.05)" />
+          <linearGradient id="creamDeepShadow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#CBB39C" stop-opacity="0.9" />
+            <stop offset="60%" stop-color="#E2D0BD" stop-opacity="0.4" />
+            <stop offset="100%" stop-color="#FFFDF9" stop-opacity="0" />
           </linearGradient>
 
-          <linearGradient id="creamTier1Lobe" x1="20%" y1="0%" x2="80%" y2="100%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="40%" stop-color="#FFFDF9" />
-            <stop offset="75%" stop-color="#F7EEE2" />
-            <stop offset="100%" stop-color="#EBDCCB" />
-          </linearGradient>
-
-          <linearGradient id="creamTier2Body" x1="15%" y1="0%" x2="85%" y2="100%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="45%" stop-color="#FFFDFB" />
-            <stop offset="80%" stop-color="#F8F0E6" />
-            <stop offset="100%" stop-color="#ECDDCF" />
-          </linearGradient>
-
-          <linearGradient id="creamCrownBody" x1="30%" y1="0%" x2="70%" y2="100%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="60%" stop-color="#FFFDF9" />
-            <stop offset="100%" stop-color="#F5EBE0" />
-          </linearGradient>
-
-          <linearGradient id="creamCreviceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="rgba(190, 160, 135, 0.75)" />
-            <stop offset="60%" stop-color="rgba(210, 185, 165, 0.5)" />
-            <stop offset="100%" stop-color="rgba(230, 210, 195, 0.15)" />
-          </linearGradient>
-
-          <linearGradient id="creamSpecularGlint" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(255, 255, 255, 0.95)" />
-            <stop offset="50%" stop-color="rgba(255, 255, 255, 0.7)" />
-            <stop offset="100%" stop-color="rgba(255, 255, 255, 0.1)" />
+          <linearGradient id="creamHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.3" />
           </linearGradient>
 
           <!-- Caramel Sauce -->
