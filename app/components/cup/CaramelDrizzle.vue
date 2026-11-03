@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 
 const props = defineProps<{
@@ -10,78 +10,64 @@ const props = defineProps<{
 
 const ribbonGroupEl = ref<SVGGElement | null>(null)
 const dripsGroupEl = ref<SVGGElement | null>(null)
-const pathEls = ref<SVGPathElement[]>([])
+// Use a template-ref callback instead of array ref to avoid null slots
+const pathElsMap = ref<Map<number, SVGPathElement>>(new Map())
 const activeTl = ref<gsap.core.Timeline | null>(null)
+
+function setPathRef(index: number, el: SVGPathElement | null) {
+  if (el) {
+    pathElsMap.value.set(index, el)
+  } else {
+    pathElsMap.value.delete(index)
+  }
+}
 
 watch(
   () => props.withCaramel,
-  (val) => {
+  async (val) => {
     if (activeTl.value) {
       activeTl.value.kill()
+      activeTl.value = null
     }
 
+    // Wait for DOM to settle before touching refs
+    await nextTick()
+
+    if (!ribbonGroupEl.value || !dripsGroupEl.value) return
+
     const tl = gsap.timeline({
-      onComplete: () => {
-        activeTl.value = null
-      }
+      onComplete: () => { activeTl.value = null }
     })
     activeTl.value = tl
 
     if (val && !props.isEmpty) {
-      // Animate zig-zag ribbon drawing over top
-      if (ribbonGroupEl.value && dripsGroupEl.value) {
-        gsap.set(ribbonGroupEl.value, { opacity: 1 })
-        gsap.set(dripsGroupEl.value, { opacity: 1 })
+      gsap.set(ribbonGroupEl.value, { opacity: 1 })
+      gsap.set(dripsGroupEl.value, { opacity: 1 })
 
-        pathEls.value.forEach((path, i) => {
-          if (!path) return
-          const length = path.getTotalLength() || 180
-          gsap.set(path, { strokeDasharray: length, strokeDashoffset: length })
+      const paths = Array.from(pathElsMap.value.values()).filter(Boolean)
+      paths.forEach((path, i) => {
+        const length = path.getTotalLength?.() || 180
+        gsap.set(path, { strokeDasharray: length, strokeDashoffset: length })
+        tl.to(path, { strokeDashoffset: 0, duration: 0.65, ease: 'power2.out' }, i * 0.12)
+      })
 
-          tl.to(
-            path,
-            {
-              strokeDashoffset: 0,
-              duration: 0.65,
-              ease: 'power2.out',
-            },
-            i * 0.12
-          )
-        })
-
-        // Drips slowly slide down inside glass wall
-        tl.fromTo(
-          dripsGroupEl.value,
-          { strokeDasharray: 140, strokeDashoffset: 140 },
-          { strokeDashoffset: 0, duration: 1.1, ease: 'power1.inOut' },
-          `-0.2`
-        )
-      }
+      tl.fromTo(
+        dripsGroupEl.value,
+        { strokeDasharray: 140, strokeDashoffset: 140 },
+        { strokeDashoffset: 0, duration: 1.1, ease: 'power1.inOut' },
+        '-0.2'
+      )
     } else {
-      // Retract drips and fade ribbon
-      if (ribbonGroupEl.value && dripsGroupEl.value) {
-        tl.to(dripsGroupEl.value, {
-          strokeDashoffset: 140,
-          duration: 0.35,
-          ease: 'power2.in',
-        })
-        tl.to(
-          ribbonGroupEl.value,
-          {
-            opacity: 0,
-            duration: 0.3,
-            ease: 'power2.in',
-          },
-          `-0.2`
-        )
-      }
+      tl.to(dripsGroupEl.value, { strokeDashoffset: 140, duration: 0.35, ease: 'power2.in' })
+      tl.to(ribbonGroupEl.value, { opacity: 0, duration: 0.3, ease: 'power2.in' }, '-0.2')
     }
-  },
-  { immediate: true }
+  }
+  // ← No `immediate: true` — run only after mount, not during patch
 )
 
 onBeforeUnmount(() => {
   if (activeTl.value) activeTl.value.kill()
+  pathElsMap.value.clear()
 })
 </script>
 
@@ -94,7 +80,7 @@ onBeforeUnmount(() => {
     >
       <!-- Ribbon 1 (Base/Mid) -->
       <path
-        ref="pathEls"
+        :ref="(el) => setPathRef(0, el as SVGPathElement | null)"
         :d="withCream
           ? 'M 106,82 Q 128,94 154,76 Q 180,60 214,84'
           : 'M 112,88 Q 134,96 160,86 Q 186,76 208,88'"
@@ -117,7 +103,7 @@ onBeforeUnmount(() => {
 
       <!-- Ribbon 2 (Higher Tier) -->
       <path
-        ref="pathEls"
+        :ref="(el) => setPathRef(1, el as SVGPathElement | null)"
         :d="withCream
           ? 'M 126,58 Q 152,72 178,50 Q 192,42 202,56'
           : 'M 124,84 Q 150,74 176,82 Q 190,88 198,84'"
@@ -140,7 +126,7 @@ onBeforeUnmount(() => {
       <!-- Crown Peak Ribbon if Cream -->
       <path
         v-if="withCream"
-        ref="pathEls"
+        :ref="(el) => setPathRef(2, el as SVGPathElement | null)"
         d="M 142,32 Q 158,44 176,28"
         stroke="url(#realCaramel)"
         stroke-width="3.2"

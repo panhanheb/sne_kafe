@@ -140,7 +140,11 @@ export const useCartStore = defineStore('cart', () => {
 
   function closeProductDetail() {
     isProductDetailOpen.value = false
-    selectedProductForDetail.value = null
+    setTimeout(() => {
+      if (!isProductDetailOpen.value) {
+        selectedProductForDetail.value = null
+      }
+    }, 350)
   }
 
   function addCustomizedItem(product: DisplayProduct, customization: CartCustomization, unitPrice: number, quantity: number = 1) {

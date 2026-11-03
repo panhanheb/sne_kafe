@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
 import gsap from 'gsap'
 
 const props = defineProps<{
@@ -18,78 +18,49 @@ const activeTl = ref<gsap.core.Timeline | null>(null)
 
 watch(
   () => props.isPouring,
-  (val) => {
+  async (val) => {
     if (activeTl.value) {
       activeTl.value.kill()
+      activeTl.value = null
     }
+
+    // Wait for the element to be visible in the DOM before animating
+    await nextTick()
+
+    if (!streamEl.value) return
 
     if (val) {
       const tl = gsap.timeline({
         onComplete: () => {
           emit('streamDone')
           activeTl.value = null
-          if (impactRingEl.value) {
-            gsap.set(impactRingEl.value, { opacity: 0 })
-          }
+          if (impactRingEl.value) gsap.set(impactRingEl.value, { opacity: 0 })
         }
       })
       activeTl.value = tl
 
-      // Stream shoots down with slight wobble
       tl.fromTo(
         streamEl.value,
-        {
-          strokeDasharray: 220,
-          strokeDashoffset: 220,
-          opacity: 0,
-        },
-        {
-          strokeDashoffset: 0,
-          opacity: 0.95,
-          duration: 0.35,
-          ease: 'power2.in',
-        }
+        { strokeDasharray: 220, strokeDashoffset: 220, opacity: 0 },
+        { strokeDashoffset: 0, opacity: 0.95, duration: 0.35, ease: 'power2.in' }
       )
-      // Stream flows while pouring (~0.7s)
-      .to(streamEl.value, {
-        opacity: 0.95,
-        duration: 0.65,
-      })
-      // Stream tails off
-      .to(streamEl.value, {
-        strokeDashoffset: -220,
-        opacity: 0,
-        duration: 0.35,
-        ease: 'power2.out',
-      })
+      .to(streamEl.value, { opacity: 0.95, duration: 0.65 })
+      .to(streamEl.value, { strokeDashoffset: -220, opacity: 0, duration: 0.35, ease: 'power2.out' })
 
-      // Surface impact ripple ring
       if (impactRingEl.value) {
         tl.fromTo(
           impactRingEl.value,
-          {
-            opacity: 0.9,
-            attr: { rx: 6, ry: 2 },
-          },
-          {
-            opacity: 0,
-            attr: { rx: 28, ry: 8 },
-            duration: 0.65,
-            repeat: 1,
-            ease: 'power1.out',
-          },
+          { opacity: 0.9, attr: { rx: 6, ry: 2 } },
+          { opacity: 0, attr: { rx: 28, ry: 8 }, duration: 0.65, repeat: 1, ease: 'power1.out' },
           0.2
         )
       }
     } else {
-      if (streamEl.value) {
-        gsap.to(streamEl.value, { opacity: 0, duration: 0.2 })
-      }
-      if (impactRingEl.value) {
-        gsap.set(impactRingEl.value, { opacity: 0 })
-      }
+      if (streamEl.value) gsap.to(streamEl.value, { opacity: 0, duration: 0.2 })
+      if (impactRingEl.value) gsap.set(impactRingEl.value, { opacity: 0 })
     }
   }
+  // ← No `immediate: true` — avoids animating null refs during initial patch
 )
 
 onBeforeUnmount(() => {
@@ -101,7 +72,7 @@ onBeforeUnmount(() => {
 <template>
   <g
     class="pour-stream-group pointer-events-none"
-    :style="{ display: isPouring ? 'inline' : 'none' }"
+    v-show="isPouring"
   >
     <!-- Flowing Espresso Jet -->
     <path
