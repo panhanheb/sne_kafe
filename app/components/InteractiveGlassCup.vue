@@ -26,6 +26,7 @@ const props = withDefaults(
     tiltY?: number
     isEmpty?: boolean
     sweetness?: string
+    flavor?: string
   }>(),
   {
     isPouring: false,
@@ -33,6 +34,7 @@ const props = withDefaults(
     tiltY: 0,
     isEmpty: false,
     sweetness: '50%',
+    flavor: 'classic',
   }
 )
 
@@ -356,6 +358,7 @@ function handleIceSplash({ x, y }: { x: number; y: number }) {
             :liquid-offset-x="liquidOffsetX"
             :is-empty="isEmpty"
             :with-extra-shot="withExtraShot"
+            :flavor="flavor"
           />
 
           <!-- 2B. Cane Sugar Swirl -->

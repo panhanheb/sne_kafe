@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "educational-animation-production": {
+      "source": "calesthio/generative-media-skills",
+      "sourceType": "github",
+      "skillPath": "skills/production/content-formats/educational-animation-production/SKILL.md",
+      "computedHash": "b77cf2d464ac24032220e37b8b62cbdd6003e0531092f85578813cfb26d47eb5"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "computedHash": "bb706e42e29a74fe8acf1e3c6ef10f066d2ccc58eb8cff5ab89dd21876231ea3"
+    }
+  }
+}

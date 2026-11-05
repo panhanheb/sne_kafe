@@ -2,9 +2,16 @@
 import { computed } from 'vue'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
+import { use8DAudio } from '~/composables/use8DAudio'
 
 const cartStore = useCartStore()
 const { t, isKhmer } = useI18n()
+const { playAddToCart } = use8DAudio()
+
+const handleOrderClick = () => {
+  playAddToCart(0.5)
+  cartStore.openCart()
+}
 
 const features = computed(() => [
   {
@@ -56,7 +63,7 @@ const features = computed(() => [
 
     <div class="max-w-7xl mx-auto px-4 sm:px-8 relative z-20">
       <!-- Section Title -->
-      <div class="text-center mb-16 sm:mb-20">
+      <div class="reveal-on-scroll text-center mb-16 sm:mb-20">
         <h2
           class="text-3xl sm:text-5xl font-extrabold text-coffee-sand tracking-tight"
           :class="isKhmer ? 'font-khmer' : ''"
@@ -71,9 +78,10 @@ const features = computed(() => [
         <!-- Left Features (1 & 2) -->
         <div class="lg:col-span-4 space-y-10 sm:space-y-14">
           <div
-            v-for="feature in features.filter(f => f.side === 'left')"
+            v-for="(feature, idx) in features.filter(f => f.side === 'left')"
             :key="feature.num"
-            class="relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-300 hover:-translate-y-1.5"
+            class="reveal-on-scroll relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-500 hover:-translate-y-2"
+            :class="'reveal-stagger-' + (idx + 1)"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">
@@ -98,7 +106,7 @@ const features = computed(() => [
         </div>
 
         <!-- Center Cup Image with teal order button underneath (Resized to Big) -->
-        <div class="lg:col-span-4 flex flex-col items-center justify-center my-6 lg:my-0 relative z-20">
+        <div class="reveal-on-scroll reveal-stagger-2 lg:col-span-4 flex flex-col items-center justify-center my-6 lg:my-0 relative z-20">
           <div class="relative w-72 sm:w-96 lg:w-[420px] h-80 sm:h-[420px] lg:h-[480px] flex items-center justify-center">
             <!-- Glow circle -->
             <div class="absolute w-64 sm:w-80 lg:w-[360px] h-64 sm:h-80 lg:h-[360px] rounded-full bg-teal-accent/20 blur-3xl -z-10 pointer-events-none" />
@@ -118,7 +126,7 @@ const features = computed(() => [
           <!-- Teal Order Button (Liquid Glass) -->
           <button
             type="button"
-            class="mt-6 px-12 py-4 rounded-full liquid-glass-button font-extrabold text-sm sm:text-base tracking-wide cursor-pointer"
+            class="mt-6 px-12 py-4 rounded-full liquid-glass-button font-extrabold text-sm sm:text-base tracking-wide cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300"
             @click="cartStore.openCart()"
           >
             {{ t.about.orderBtn }}
@@ -128,9 +136,10 @@ const features = computed(() => [
         <!-- Right Features (3 & 4) -->
         <div class="lg:col-span-4 space-y-10 sm:space-y-14">
           <div
-            v-for="feature in features.filter(f => f.side === 'right')"
+            v-for="(feature, idx) in features.filter(f => f.side === 'right')"
             :key="feature.num"
-            class="relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-300 hover:-translate-y-1.5"
+            class="reveal-on-scroll relative liquid-glass-card p-6 sm:p-7 rounded-[2.25rem] transition-all duration-500 hover:-translate-y-2"
+            :class="'reveal-stagger-' + (idx + 2)"
           >
             <!-- Big Faint Number behind title -->
             <span class="absolute -top-6 left-4 text-6xl sm:text-7xl font-black text-coffee-sand/15 select-none font-mono pointer-events-none">

@@ -30,32 +30,46 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Inter', 'Akbalthom', system-ui, -apple-system, sans-serif;
-    background-color: #2B1D16;
+    background-color: #1a0f0a;
     color: #F4ECE4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   [lang="km"], .font-khmer {
     font-family: 'Akbalthom', system-ui, sans-serif;
     line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background: radial-gradient(circle at 50% 0%, #3D2B22 0%, #2B1D16 60%, #1E130D 100%);
+    background: radial-gradient(circle at 50% -10%, #352117 0%, #1c110b 55%, #0e0704 100%);
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 8K Ultra-Smooth Hardware Acceleration */
+  .gpu-accel {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
   }
 
   /* Custom subtle coffee scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #1F140E;
+    background: #140b07;
   }
   ::-webkit-scrollbar-thumb {
-    background: #4E3A2F;
-    border-radius: 4px;
+    background: #3e281d;
+    border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #6FA8A3;
@@ -64,61 +78,71 @@
 
 @layer components {
   /* ==========================================================================
-     Smooth Liquid Glass UI System (Soft, Seamless & Velvety)
+     8K Ultra-High Definition Liquid Glass UI System (Velvety, Crisp & Tactile)
      ========================================================================== */
 
   .liquid-glass-card {
     background: linear-gradient(
       155deg,
-      rgba(44, 30, 22, 0.85) 0%,
-      rgba(28, 18, 12, 0.92) 100%
+      rgba(42, 27, 19, 0.88) 0%,
+      rgba(24, 15, 10, 0.94) 100%
     );
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(217, 168, 124, 0.18);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(234, 180, 130, 0.16);
     box-shadow:
-      0 10px 30px -6px rgba(0, 0, 0, 0.22),
-      0 20px 45px -12px rgba(0, 0, 0, 0.18);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      0 12px 36px -8px rgba(0, 0, 0, 0.45),
+      0 24px 60px -15px rgba(0, 0, 0, 0.35),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: visible;
+    transform: translateZ(0);
   }
 
   .liquid-glass-card:hover {
-    border-color: rgba(217, 168, 124, 0.35);
-    transform: translateY(-4px);
+    border-color: rgba(234, 180, 130, 0.4);
+    transform: translateY(-6px) scale(1.01);
     box-shadow:
-      0 15px 35px -6px rgba(0, 0, 0, 0.28),
-      0 25px 50px -12px rgba(0, 0, 0, 0.22);
+      0 20px 45px -10px rgba(0, 0, 0, 0.55),
+      0 32px 75px -15px rgba(234, 163, 75, 0.15),
+      0 0 25px rgba(111, 168, 163, 0.12),
+      inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.3);
   }
 
-  /* Smooth Floating Glass Pill */
+  /* 8K Floating Glass Pill */
   .liquid-glass-pill {
-    background: rgba(35, 23, 16, 0.78);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(217, 168, 124, 0.18);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    background: rgba(30, 19, 13, 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(234, 180, 130, 0.2);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Smooth Creamy Teal Button */
+  /* 8K Velvety Teal Button with Specular Rim & Tactile Spring */
   .liquid-glass-button {
-    background: linear-gradient(135deg, #74AEA9 0%, #5E9B95 100%);
-    color: #101F1D;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, #7bb8b3 0%, #569690 100%);
+    color: #0b1a18;
+    border: 1px solid rgba(255, 255, 255, 0.32);
     box-shadow:
-      0 8px 20px -3px rgba(111, 168, 163, 0.4),
-      inset 0 1px 1px rgba(255, 255, 255, 0.35);
-    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      0 10px 24px -4px rgba(111, 168, 163, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.25),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.55),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .liquid-glass-button:hover {
-    background: linear-gradient(135deg, #84BFBA 0%, #6BA9A3 100%);
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #8dc8c3 0%, #64a6a0 100%);
+    transform: translateY(-2px) scale(1.02);
     box-shadow:
-      0 12px 25px -3px rgba(111, 168, 163, 0.55),
-      inset 0 1px 1px rgba(255, 255, 255, 0.45);
+      0 14px 30px -4px rgba(111, 168, 163, 0.6),
+      0 4px 12px rgba(0, 0, 0, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.7);
   }
 
   .liquid-glass-button:active {
@@ -126,17 +150,20 @@
     box-shadow: 0 4px 12px rgba(111, 168, 163, 0.35);
   }
 
-  /* Smooth Modal & Drawer */
+  /* 8K Ultra-Deep Liquid Modal & Drawer */
   .liquid-glass-modal {
     background: linear-gradient(
       155deg,
-      rgba(35, 23, 16, 0.94) 0%,
-      rgba(22, 14, 9, 0.98) 100%
+      rgba(32, 20, 14, 0.96) 0%,
+      rgba(16, 10, 6, 0.99) 100%
     );
-    backdrop-filter: blur(28px) saturate(170%);
-    -webkit-backdrop-filter: blur(28px) saturate(170%);
-    border: 1px solid rgba(217, 168, 124, 0.18);
-    box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(36px) saturate(190%);
+    -webkit-backdrop-filter: blur(36px) saturate(190%);
+    border: 1px solid rgba(234, 180, 130, 0.18);
+    box-shadow:
+      0 32px 80px -15px rgba(0, 0, 0, 0.85),
+      0 0 1px 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
   }
 
   /* Legacy aliases for backwards compatibility */
@@ -285,15 +312,15 @@
 }
 
 .animate-ice-drop-1 {
-  animation: iceDrop1 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  animation: iceDrop1 0.65s cubic-bezier(0.22, 1, 0.36, 1.04) forwards;
 }
 
 .animate-ice-drop-2 {
-  animation: iceDrop2 0.85s 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  animation: iceDrop2 0.72s 0.06s cubic-bezier(0.22, 1, 0.36, 1.04) forwards;
 }
 
 .animate-ice-drop-3 {
-  animation: iceDrop3 0.9s 0.16s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  animation: iceDrop3 0.78s 0.12s cubic-bezier(0.22, 1, 0.36, 1.04) forwards;
 }
 
 .animate-ice-bob {
@@ -303,45 +330,43 @@
 /* Liquid Ripple Wave */
 @keyframes rippleWave {
   0% {
-    transform: scale(0.3);
+    transform: scale(0.4);
     opacity: 0.9;
   }
-  60% {
-    opacity: 0.5;
+  50% {
+    opacity: 0.45;
   }
   100% {
-    transform: scale(2.4);
+    transform: scale(2.2);
     opacity: 0;
   }
 }
 
 .animate-ripple {
-  animation: rippleWave 1.2s cubic-bezier(0.1, 0.6, 0.4, 1) forwards;
+  animation: rippleWave 1.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* 3D Whipped Cream Swirl Descent */
 @keyframes creamDescend {
   0% {
-    transform: translate3d(0, -140px, 80px) scale(0.2) rotate(-180deg);
+    transform: translate3d(0, -90px, 40px) scale(0.5);
     opacity: 0;
-    filter: blur(8px);
   }
-  65% {
-    transform: translate3d(0, 10px, 30px) scale(1.12) rotate(15deg);
+  60% {
+    transform: translate3d(0, 6px, 15px) scale(1.04);
     opacity: 1;
-    filter: blur(0px);
   }
   82% {
-    transform: translate3d(0, -6px, 15px) scale(0.96) rotate(-5deg);
+    transform: translate3d(0, -2px, 5px) scale(0.98);
   }
   100% {
-    transform: translate3d(0, 0px, 0px) scale(1) rotate(0deg);
+    transform: translate3d(0, 0px, 0px) scale(1);
     opacity: 1;
   }
 }
 
 .animate-cream-swirl {
-  animation: creamDescend 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: creamDescend 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.02) forwards;
 }
 
 /* Chocolate Drizzle Draw */
@@ -407,5 +432,105 @@
 
 .animate-dust {
   animation: dustShower 0.6s ease-out forwards;
+}
+
+/* Natural Spring & Scale Keyframes */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.65);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================================================
+   8D Ultra-Smooth Scroll-Driven 3D Perspective Reveal System
+   ========================================================================== */
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: perspective(1200px) translateY(38px) rotateX(7deg) scale(0.96);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.reveal-visible {
+  opacity: 1;
+  transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
+}
+
+.reveal-stagger-1 {
+  transition-delay: 80ms;
+}
+
+.reveal-stagger-2 {
+  transition-delay: 180ms;
+}
+
+.reveal-stagger-3 {
+  transition-delay: 280ms;
+}
+
+.reveal-stagger-4 {
+  transition-delay: 380ms;
+}
+
+/* 8D Binaural Soundwave Visualizer Bar Animation */
+@keyframes soundwaveBar {
+  0%, 100% {
+    height: 4px;
+    opacity: 0.5;
+  }
+  50% {
+    height: 14px;
+    opacity: 1;
+  }
+}
+
+.animate-soundwave-1 {
+  animation: soundwaveBar 0.55s ease-in-out infinite;
+}
+
+.animate-soundwave-2 {
+  animation: soundwaveBar 0.4s ease-in-out infinite 0.12s;
+}
+
+.animate-soundwave-3 {
+  animation: soundwaveBar 0.65s ease-in-out infinite 0.22s;
+}
+
+.animate-soundwave-4 {
+  animation: soundwaveBar 0.45s ease-in-out infinite 0.08s;
+}
+
+/* Reduced Motion Preference Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fly-to-cart-proxy {
+    display: none !important;
+  }
 }
 

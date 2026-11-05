@@ -1,15 +1,85 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ShoppingBag, Heart, Menu, X, Globe } from 'lucide-vue-next'
+import gsap from 'gsap'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
+import { useFlyToCart } from '~/composables/useFlyToCart'
+import { use8DAudio } from '~/composables/use8DAudio'
 
 const cartStore = useCartStore()
 const { locale, setLocale, toggleLocale, t } = useI18n()
+const { cartBounceTrigger } = useFlyToCart()
+const { is8DAudioMuted, is8DActive, toggleMute } = use8DAudio()
 
 const isScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 const activeNav = ref('#hero')
+const cartButtonEl = ref<HTMLElement | null>(null)
+const cartBadgeEl = ref<HTMLElement | null>(null)
+const isCartBouncing = ref(false)
+
+// Realistic Cart Squash & Stretch Rebound Physics
+const triggerCartBounce = () => {
+  if (!cartButtonEl.value) return
+  isCartBouncing.value = true
+
+  const tl = gsap.timeline({
+    onComplete: () => {
+      isCartBouncing.value = false
+    }
+  })
+
+  // Impact compression: squashes vertically and expands horizontally
+  tl.to(cartButtonEl.value, {
+    scaleY: 0.82,
+    scaleX: 1.22,
+    duration: 0.12,
+    ease: 'power2.in',
+  })
+  // Elastic spring rebound
+  .to(cartButtonEl.value, {
+    scaleY: 1.25,
+    scaleX: 0.85,
+    duration: 0.16,
+    ease: 'power1.out',
+  })
+  // Secondary settle
+  .to(cartButtonEl.value, {
+    scaleY: 0.94,
+    scaleX: 1.06,
+    duration: 0.14,
+    ease: 'sine.inOut',
+  })
+  // Final rest
+  .to(cartButtonEl.value, {
+    scaleY: 1,
+    scaleX: 1,
+    duration: 0.22,
+    ease: 'elastic.out(1, 0.4)',
+  })
+
+  // Badge spring pop
+  if (cartBadgeEl.value) {
+    gsap.fromTo(
+      cartBadgeEl.value,
+      { scale: 0.6, rotate: -15 },
+      { scale: 1.35, rotate: 0, duration: 0.2, ease: 'back.out(2)', onComplete: () => {
+        gsap.to(cartBadgeEl.value, { scale: 1, duration: 0.2, ease: 'power2.out' })
+      }}
+    )
+  }
+}
+
+watch(cartBounceTrigger, () => {
+  triggerCartBounce()
+})
+
+watch(() => cartStore.totalItems, (newVal, oldVal) => {
+  if (newVal > (oldVal ?? 0)) {
+    triggerCartBounce()
+  }
+})
 
 const navItems = computed(() => [
   { name: t.value.nav.home, href: '#hero' },
@@ -95,8 +165,29 @@ const navigateTo = (href: string) => {
         </a>
       </nav>
 
-      <!-- Right controls: Language Switcher, favorites, cart, order button -->
+      <!-- Right controls: Language Switcher, 8D Audio Toggle, favorites, cart, order button -->
       <div class="flex items-center gap-1.5 sm:gap-2.5">
+        <!-- 8D Spatial Audio Toggle & Animated Soundwave Visualizer -->
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer active:scale-95 border select-none"
+          :class="is8DAudioMuted
+            ? 'bg-black/40 text-coffee-muted border-white/10 hover:text-coffee-sand hover:bg-white/5'
+            : 'bg-teal-500/20 text-teal-300 border-teal-400/40 shadow-[0_0_12px_rgba(111,168,163,0.3)]'"
+          :title="is8DAudioMuted ? 'Unmute 8D Spatial Audio (Scroll & 3D)' : 'Mute 8D Spatial Audio'"
+          @click="toggleMute"
+        >
+          <span class="text-xs">{{ is8DAudioMuted ? '🔇' : '🎧' }}</span>
+          <span class="tracking-wide hidden sm:inline font-mono text-[11px]">8D</span>
+          <!-- Dynamic 8D Soundwave Visualizer Bars -->
+          <span v-if="!is8DAudioMuted" class="flex items-center gap-0.5 h-3 ml-0.5">
+            <span class="w-0.5 bg-teal-300 rounded-full" :class="is8DActive ? 'animate-soundwave-1' : 'h-1 opacity-50'" />
+            <span class="w-0.5 bg-teal-300 rounded-full" :class="is8DActive ? 'animate-soundwave-2' : 'h-2.5 opacity-50'" />
+            <span class="w-0.5 bg-teal-300 rounded-full" :class="is8DActive ? 'animate-soundwave-3' : 'h-1.5 opacity-50'" />
+            <span class="w-0.5 bg-teal-300 rounded-full" :class="is8DActive ? 'animate-soundwave-4' : 'h-1 opacity-50'" />
+          </span>
+        </button>
+
         <!-- Liquid Language Switcher Pill (Khmer / English) -->
         <div class="flex items-center p-0.5 rounded-full liquid-glass-pill text-xs">
           <button
@@ -135,17 +226,25 @@ const navigateTo = (href: string) => {
           </span>
         </button>
 
-        <!-- Cart button with Pinia badge counter -->
+        <!-- Cart button with Pinia badge counter & Realistic Impact Bounce -->
         <button
+          id="app-cart-button"
+          ref="cartButtonEl"
           type="button"
-          class="relative p-2 sm:p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-white/10 active:scale-90"
+          class="relative p-2 sm:p-2.5 rounded-full text-coffee-sand hover:text-teal-accent hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10 active:scale-90 will-change-transform"
           :title="t.cart.title"
           @click="cartStore.openCart()"
         >
-          <ShoppingBag class="w-5 h-5" />
+          <!-- Impact ring when product lands in cart -->
+          <span
+            v-if="isCartBouncing"
+            class="absolute inset-0 rounded-full border-2 border-amber-400 animate-ping pointer-events-none opacity-75"
+          />
+          <ShoppingBag class="w-5 h-5 pointer-events-none" />
           <span
             v-if="cartStore.totalItems > 0"
-            class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-teal-accent text-teal-darkText text-[10px] font-extrabold flex items-center justify-center leading-none shadow-[0_0_8px_rgba(111,168,163,0.8)] animate-pulse"
+            ref="cartBadgeEl"
+            class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-teal-accent text-teal-darkText text-[10px] font-extrabold flex items-center justify-center leading-none shadow-[0_0_10px_rgba(111,168,163,0.9)] will-change-transform tabular-nums"
           >
             {{ cartStore.totalItems }}
           </span>

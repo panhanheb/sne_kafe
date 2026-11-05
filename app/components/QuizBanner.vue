@@ -10,8 +10,8 @@ const isQuizOpen = ref(false)
 <template>
   <section id="promo" class="relative py-16 sm:py-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-8">
-      <!-- Wide Liquid Glass Card -->
-      <div class="relative liquid-glass-card rounded-4xl p-8 sm:p-12 lg:p-16 overflow-visible shadow-glass">
+      <!-- Wide Liquid Glass Card with 8D Scroll Reveal -->
+      <div class="reveal-on-scroll relative liquid-glass-card rounded-4xl p-8 sm:p-12 lg:p-16 overflow-visible shadow-glass transition-all duration-500">
         <!-- Background subtle glow -->
         <div class="absolute -top-10 -left-10 w-72 h-72 rounded-full bg-teal-accent/15 blur-3xl pointer-events-none" />
 

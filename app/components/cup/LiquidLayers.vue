@@ -1,23 +1,41 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
-  productId: string
-  liquidTopY: number
-  surfaceAngle: number
-  sloshWave: number
-  liquidOffsetX: number
-  isEmpty: boolean
-  withExtraShot: boolean
-  isDraining?: boolean
-  isRefilling?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    productId: string
+    liquidTopY: number
+    surfaceAngle: number
+    sloshWave: number
+    liquidOffsetX: number
+    isEmpty: boolean
+    withExtraShot: boolean
+    isDraining?: boolean
+    isRefilling?: boolean
+    flavor?: string
+  }>(),
+  {
+    isDraining: false,
+    isRefilling: false,
+    flavor: 'classic',
+  }
+)
 
 // Dynamic gradient colors per product recipe
 const theme = computed(() => {
   const id = props.productId.toLowerCase()
+  let t = {
+    top: '#99592F',         // Golden Crema
+    layer1: '#5A2E15',      // Espresso blend
+    layer2: '#3D1C0A',      // Full body roast
+    bottom: '#1A0B04',      // Deep black espresso
+    surface: '#A8683B',
+    swirl: '#5C2B10',
+    cremaBubble: '#DB9E72',
+  }
+
   if (id.includes('latte')) {
-    return {
+    t = {
       top: '#FFF7ED',       // Silky milk froth
       layer1: '#E8CAAC',    // Steamed milk blend
       layer2: '#BA7A46',    // Crema / golden espresso
@@ -26,9 +44,8 @@ const theme = computed(() => {
       swirl: '#C0814D',
       cremaBubble: '#FFFBF5',
     }
-  }
-  if (id.includes('cappuccino')) {
-    return {
+  } else if (id.includes('cappuccino')) {
+    t = {
       top: '#FFFDF7',       // Thick dense foam
       layer1: '#D4A373',    // Espresso crema ring
       layer2: '#8C4D22',    // Espresso body
@@ -37,9 +54,8 @@ const theme = computed(() => {
       swirl: '#A65D2B',
       cremaBubble: '#FFF8EB',
     }
-  }
-  if (id.includes('mocha')) {
-    return {
+  } else if (id.includes('mocha')) {
+    t = {
       top: '#E6D2C0',       // Cocoa foam
       layer1: '#6E3A20',    // Espresso cocoa blend
       layer2: '#4A2312',    // Dutch dark chocolate
@@ -48,9 +64,8 @@ const theme = computed(() => {
       swirl: '#3E1C0D',
       cremaBubble: '#F2E5D8',
     }
-  }
-  if (id.includes('coldbrew') || id.includes('iced')) {
-    return {
+  } else if (id.includes('coldbrew') || id.includes('iced')) {
+    t = {
       top: '#7D4423',       // Amber cold brew surface
       layer1: '#542913',    // Slow-steeped extraction
       layer2: '#3A1909',    // Dense dark roast
@@ -59,9 +74,8 @@ const theme = computed(() => {
       swirl: '#4A200B',
       cremaBubble: '#D8996C',
     }
-  }
-  if (id.includes('matcha')) {
-    return {
+  } else if (id.includes('matcha')) {
+    t = {
       top: '#E8F5E1',       // Sweet oat foam
       layer1: '#7CB269',    // Frothy jade matcha
       layer2: '#4E883A',    // Uji ceremonial matcha
@@ -70,9 +84,8 @@ const theme = computed(() => {
       swirl: '#4D823E',
       cremaBubble: '#E2F0DA',
     }
-  }
-  if (id.includes('macchiato')) {
-    return {
+  } else if (id.includes('macchiato')) {
+    t = {
       top: '#F9EDE1',       // Vanilla microfoam
       layer1: '#AF6C31',    // Bold espresso mark
       layer2: '#E7CAA8',    // Sweet vanilla milk layer
@@ -82,16 +95,24 @@ const theme = computed(() => {
       cremaBubble: '#FFF5E8',
     }
   }
-  // Default Americano
-  return {
-    top: '#99592F',         // Golden Crema
-    layer1: '#5A2E15',      // Espresso blend
-    layer2: '#3D1C0A',      // Full body roast
-    bottom: '#1A0B04',      // Deep black espresso
-    surface: '#A8683B',
-    swirl: '#5C2B10',
-    cremaBubble: '#DB9E72',
+
+  // Infuse selected flavor syrup warmth into liquid
+  if (props.flavor === 'caramel') {
+    t.layer2 = '#D97F24'
+    t.swirl = '#F5A638'
+    t.surface = '#E59A3D'
+  } else if (props.flavor === 'vanilla') {
+    t.layer1 = '#F3DEC7'
+    t.top = '#FFF9F0'
+  } else if (props.flavor === 'hazelnut') {
+    t.layer2 = '#9C582B'
+    t.swirl = '#7D4217'
+  } else if (props.flavor === 'coconut') {
+    t.layer1 = '#EAE2D8'
+    t.swirl = '#B89B7E'
   }
+
+  return t
 })
 
 // Radius of liquid surface ellipse at current Y height

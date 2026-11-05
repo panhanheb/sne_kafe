@@ -7,6 +7,9 @@ export interface CartCustomization {
   size?: 'S' | 'M' | 'L'
   iceLevel?: string
   sweetness?: string
+  flavor?: string
+  milk?: string
+  temperature?: 'hot' | 'iced'
   cream?: boolean
   extraShot?: boolean
   toppings?: string[]
@@ -150,6 +153,9 @@ export const useCartStore = defineStore('cart', () => {
   function addCustomizedItem(product: DisplayProduct, customization: CartCustomization, unitPrice: number, quantity: number = 1) {
     const noteParts: string[] = []
     if (customization.size) noteParts.push(`Size ${customization.size}`)
+    if (customization.temperature) noteParts.push(customization.temperature === 'iced' ? 'Iced' : 'Hot')
+    if (customization.flavor) noteParts.push(`Flavor: ${customization.flavor}`)
+    if (customization.milk) noteParts.push(`Milk: ${customization.milk}`)
     if (customization.iceLevel) noteParts.push(customization.iceLevel)
     if (customization.sweetness) noteParts.push(customization.sweetness)
     if (customization.cream) noteParts.push('+Whipped Cream')

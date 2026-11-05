@@ -3,14 +3,17 @@ import { ref } from 'vue'
 import { X, Trash2, Plus, Minus, ShoppingBag, CheckCircle, ArrowRight, Utensils, Bike, Coffee, Clock, Receipt } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
+import { use8DAudio } from '~/composables/use8DAudio'
 
 const cartStore = useCartStore()
 const { t, isKhmer } = useI18n()
+const { playOrderSuccess, playQuantityClick } = use8DAudio()
 
 const sugarLevels = ['100%', '70%', '50%', '0%']
 const iceLevels = ['Normal', 'Less Ice', 'No Ice']
 
 const handleCheckout = () => {
+  playOrderSuccess()
   cartStore.checkout()
 }
 
@@ -24,32 +27,32 @@ const closeAndReset = () => {
   <teleport to="body">
     <!-- Backdrop -->
     <transition
-      enter-active-class="transition duration-300 ease-out"
+      enter-active-class="transition-opacity duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition duration-200 ease-in"
+      leave-active-class="transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
       <div
         v-if="cartStore.isOpen"
-        class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xl"
+        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl gpu-accel"
         @click="closeAndReset"
       />
     </transition>
 
     <!-- Slide-in Drawer (Liquid Glass) -->
     <transition
-      enter-active-class="transition duration-300 ease-out transform"
+      enter-active-class="transition-transform duration-450 ease-[cubic-bezier(0.16,1,0.3,1)] transform"
       enter-from-class="translate-x-full"
       enter-to-class="translate-x-0"
-      leave-active-class="transition duration-200 ease-in transform"
+      leave-active-class="transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] transform"
       leave-from-class="translate-x-0"
       leave-to-class="translate-x-full"
     >
       <div
         v-if="cartStore.isOpen"
-        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg liquid-glass-modal flex flex-col justify-between overflow-hidden"
+        class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg liquid-glass-modal flex flex-col justify-between overflow-hidden gpu-accel"
       >
         <!-- Header -->
         <div class="p-6 border-b border-white/10 flex items-center justify-between bg-black/30 backdrop-blur-xl shrink-0">
@@ -188,15 +191,19 @@ const closeAndReset = () => {
             </button>
           </div>
 
-          <!-- Items list -->
-          <div class="space-y-4 divide-y divide-[#3D281C]/70">
+          <!-- Items list with Staggered Transition Group -->
+          <TransitionGroup
+            name="cart-item-list"
+            tag="div"
+            class="space-y-4 divide-y divide-[#3D281C]/70"
+          >
             <div
               v-for="item in cartStore.items"
-              :key="item.product.id"
-              class="pt-4 first:pt-0 flex items-start gap-4"
+              :key="item.product.id + (item.note || '')"
+              class="pt-4 first:pt-0 flex items-start gap-4 transition-all duration-300"
             >
-              <!-- Thumbnail -->
-              <div class="w-16 h-16 rounded-2xl bg-[#2A1C15] p-2 flex items-center justify-center shrink-0 border border-coffee-sand/10">
+              <!-- Thumbnail with soft lift on hover -->
+              <div class="w-16 h-16 rounded-2xl bg-[#2A1C15] p-2 flex items-center justify-center shrink-0 border border-coffee-sand/10 shadow-sm">
                 <NuxtImg
                   :src="item.product.image"
                   :alt="item.product.name"
@@ -216,14 +223,18 @@ const closeAndReset = () => {
                     >
                       {{ item.product.name }}
                     </h4>
-                    <span class="text-[11px] text-coffee-subtle font-mono">
+                    <!-- Customization note badges if present -->
+                    <p v-if="item.note" class="text-[10px] text-teal-accent font-medium mt-0.5 truncate max-w-[200px]">
+                      {{ item.note }}
+                    </p>
+                    <span class="text-[11px] text-coffee-subtle font-mono block">
                       {{ item.product.formattedPrice }} {{ t.cart.perCup }}
                     </span>
                   </div>
 
                   <button
                     type="button"
-                    class="text-coffee-muted hover:text-red-400 p-1 transition-colors"
+                    class="text-coffee-muted hover:text-red-400 p-1.5 transition-colors active:scale-90 rounded-full hover:bg-white/5 cursor-pointer"
                     :aria-label="'Remove ' + item.product.name"
                     @click="cartStore.removeItem(item.product.id)"
                   >
@@ -233,40 +244,43 @@ const closeAndReset = () => {
 
                 <!-- Quantity adjust & Subtotal -->
                 <div class="flex items-center justify-between mt-3">
-                  <div class="flex items-center gap-2.5 bg-[#180F0A] rounded-full px-2.5 py-1 border border-coffee-sand/15">
+                  <div class="flex items-center gap-2 bg-[#180F0A] rounded-full px-2.5 py-1 border border-coffee-sand/15 shadow-inner">
                     <button
                       type="button"
-                      class="w-5 h-5 rounded-full flex items-center justify-center text-coffee-sand hover:text-white active:scale-90"
+                      class="w-5 h-5 rounded-full flex items-center justify-center text-coffee-sand hover:text-white active:scale-90 cursor-pointer disabled:opacity-40"
+                      :disabled="item.quantity <= 1"
                       :aria-label="'Decrease quantity ' + item.product.name"
-                      @click="cartStore.decrement(item.product.id)"
+                      @click="cartStore.decrement(item.product.id), playQuantityClick('down')"
                     >
                       <Minus class="w-3.5 h-3.5" />
                     </button>
-                    <span class="text-xs font-extrabold text-white min-w-4 text-center">
+
+                    <span class="text-xs font-mono font-black text-white min-w-4 text-center tabular-nums">
                       {{ item.quantity }}
                     </span>
+
                     <button
                       type="button"
-                      class="w-5 h-5 rounded-full flex items-center justify-center text-coffee-sand hover:text-white active:scale-90"
+                      class="w-5 h-5 rounded-full flex items-center justify-center text-coffee-sand hover:text-white active:scale-90 cursor-pointer"
                       :aria-label="'Increase quantity ' + item.product.name"
-                      @click="cartStore.increment(item.product.id)"
+                      @click="cartStore.increment(item.product.id), playQuantityClick('up')"
                     >
                       <Plus class="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   <div class="text-right">
-                    <div class="text-sm font-extrabold text-white">
+                    <div class="text-sm font-extrabold text-white font-mono">
                       ${{ (item.product.price * item.quantity).toFixed(2) }}
                     </div>
-                    <div class="text-[10px] text-coffee-subtle">
+                    <div class="text-[10px] text-coffee-subtle font-mono">
                       {{ ((item.product.price * item.quantity) * 4000).toLocaleString() }} ៛
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </TransitionGroup>
 
           <!-- Special Note Input -->
           <div class="pt-2">
@@ -321,3 +335,20 @@ const closeAndReset = () => {
     </transition>
   </teleport>
 </template>
+
+<style scoped>
+.cart-item-list-enter-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cart-item-list-leave-active {
+  transition: all 0.22s ease-in;
+}
+.cart-item-list-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.cart-item-list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+</style>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from '~/composables/useI18n'
+import { useScrollAnimation } from '~/composables/useScrollAnimation'
 
 const { locale, isKhmer, t } = useI18n()
+useScrollAnimation()
 
 useHead(() => ({
   htmlAttrs: {

@@ -55,7 +55,7 @@ const scrollToMenu = () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-8 w-full relative z-20">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
         <!-- Left Column: Copy & CTA -->
-        <div class="lg:col-span-6 space-y-6 sm:space-y-8 text-center lg:text-left">
+        <div class="reveal-on-scroll lg:col-span-6 space-y-6 sm:space-y-8 text-center lg:text-left">
           <!-- Subtle tag / badge (Liquid Glass Pill) -->
           <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-pill text-xs font-semibold text-coffee-sand">
             <Sparkles class="w-3.5 h-3.5 text-teal-accent animate-pulse" />
@@ -119,7 +119,7 @@ const scrollToMenu = () => {
         </div>
 
         <!-- Right Column: Visual Coffee Composition (Bigger Prominent Cups) -->
-        <div class="lg:col-span-6 relative flex items-center justify-center pt-6 lg:pt-0">
+        <div class="reveal-on-scroll reveal-stagger-2 lg:col-span-6 relative flex items-center justify-center pt-6 lg:pt-0">
           <!-- Background radial glow -->
           <div class="absolute w-80 h-80 sm:w-[500px] sm:h-[500px] rounded-full bg-coffee-sand/20 blur-3xl -z-10 animate-pulseGlow pointer-events-none" />
 

@@ -13,25 +13,32 @@ import {
   RotateCcw,
   Flame,
   Snowflake,
+  ChevronDown,
+  Droplets,
+  Milk,
+  Layers,
 } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
+import { useFlyToCart } from '~/composables/useFlyToCart'
+import { use8DAudio } from '~/composables/use8DAudio'
 import type { CartCustomization } from '~/stores/cart'
-import InteractiveGlassCup from './InteractiveGlassCup.vue'
+import ThreeIcedCoffeeCup from './ThreeIcedCoffeeCup.vue'
+import AnimatedPrice from './ui/AnimatedPrice.vue'
+import AnimatedCounter from './ui/AnimatedCounter.vue'
+import SlidingSegmentedControl from './ui/SlidingSegmentedControl.vue'
+import SpringCheckbox from './ui/SpringCheckbox.vue'
 
 const cartStore = useCartStore()
 const { t, isKhmer } = useI18n()
+const { flyToCart } = useFlyToCart()
+const { playAddToCart, playQuantityClick } = use8DAudio()
 
-// Cached Active Product — only ever written with a non-null value so that child
-// components (InteractiveGlassCup, NuxtImg, etc.) always have valid props during
-// the exit transition. Vue's v-if gate handles actual unmounting.
+// Cached Active Product for smooth leave transitions
 const product = ref<any>(null)
 watch(
   () => cartStore.selectedProductForDetail,
   (newVal) => {
-    // Never set to null — the cached value keeps child vnodes stable while the
-    // leave transition plays. Once isProductDetailOpen is false the whole subtree
-    // is removed by v-if and the stale value no longer matters.
     if (newVal !== null && newVal !== undefined) {
       product.value = newVal
     }
@@ -41,42 +48,64 @@ watch(
 
 // Customization State
 const selectedSize = ref<'S' | 'M' | 'L'>('M')
+const selectedTemp = ref<'hot' | 'iced'>('iced')
+const selectedFlavor = ref<string>('classic')
+const selectedMilk = ref<string>('whole')
 const selectedIce = ref<'none' | 'less' | 'regular' | 'extra'>('regular')
 const selectedSweetness = ref<string>('50%')
+
+// Extras
 const withCream = ref(false)
 const withExtraShot = ref(false)
 const withCocoa = ref(false)
 const withCaramel = ref(false)
+const withBakeryButter = ref(false)
+const bakeryServingStyle = ref<'toasted' | 'fresh'>('toasted')
 const quantity = ref(1)
 
 // Empty Cup vs Crafted Drink Preview Mode
 const isCupEmpty = ref(false)
-
-// Animation Triggers
-const isEspressoPouring = ref(false)
 const isOrderAdded = ref(false)
-const pricePulse = ref(false)
+const isAddingToCart = ref(false)
 
-// Trigger pulse on price/option change
-watch([selectedSize, selectedIce, withCream, withExtraShot, withCaramel, quantity], () => {
-  pricePulse.value = true
-  setTimeout(() => { pricePulse.value = false }, 280)
+// Section Accordion Collapsed States
+const openSections = ref<Record<string, boolean>>({
+  size: true,
+  flavor: true,
+  iceSweet: true,
+  extras: true,
+  notes: false,
 })
 
-// Dynamic Ambient Glow Color
+const toggleSection = (section: string) => {
+  openSections.value[section] = !openSections.value[section]
+}
+
+// Cup Showcase & Visual Refs for Flying Product Animation
+const showcaseRef = ref<HTMLElement | null>(null)
+const cupVisualRef = ref<HTMLElement | null>(null)
+
+// Dynamic Ambient Glow Color based on product & selected variant
 const ambientGlowColor = computed(() => {
   if (!product.value) return 'bg-amber-600/20'
   const id = product.value.id.toLowerCase()
+
+  if (selectedFlavor.value === 'caramel') return 'bg-amber-500/30'
+  if (selectedFlavor.value === 'vanilla') return 'bg-amber-200/20'
+  if (selectedFlavor.value === 'hazelnut') return 'bg-amber-700/25'
+  if (selectedFlavor.value === 'coconut') return 'bg-teal-300/20'
+
   if (id.includes('matcha')) return 'bg-emerald-500/25'
   if (id.includes('mocha')) return 'bg-amber-700/30'
-  if (id.includes('cold') || id.includes('iced')) return 'bg-teal-400/25'
+  if (selectedTemp.value === 'iced' || id.includes('cold') || id.includes('iced')) return 'bg-teal-400/25'
   if (withCream.value) return 'bg-amber-400/25'
   return 'bg-[#EAA34B]/20'
 })
 
 const isDrinkIced = computed(() => {
   if (!product.value) return false
-  return product.value.id.includes('iced') || product.value.id.includes('cold') || product.value.category === 'iced'
+  if (product.value.category === 'bakery') return false
+  return selectedTemp.value === 'iced' || product.value.id.includes('iced') || product.value.id.includes('cold') || product.value.category === 'iced'
 })
 
 // Smooth 3D Tilt State with Lerp Physics
@@ -95,7 +124,6 @@ function updateTilt() {
 
 // Reset & Barista "Build" Intro Sequence when a new product opens
 let introTimers: ReturnType<typeof setTimeout>[] = []
-
 function clearIntroTimers() {
   introTimers.forEach(id => clearTimeout(id))
   introTimers = []
@@ -107,50 +135,53 @@ watch(
     clearIntroTimers()
     if (newProduct) {
       selectedSize.value = 'M'
+      selectedFlavor.value = 'classic'
+      selectedMilk.value = 'whole'
       selectedSweetness.value = '50%'
       quantity.value = 1
       isOrderAdded.value = false
-      isEspressoPouring.value = false
+      isAddingToCart.value = false
+      withBakeryButter.value = false
+      bakeryServingStyle.value = 'toasted'
+
+      selectedTemp.value = 'iced'
 
       if (newProduct.category === 'bakery') {
         isCupEmpty.value = false
         return
       }
 
-      // 1. Start with clean empty glass
-      isCupEmpty.value = true
-      selectedIce.value = 'none'
-      withCream.value = false
-      withExtraShot.value = false
-      withCocoa.value = false
-      withCaramel.value = false
-
-      // 2. Liquid fills in
-      const t1 = setTimeout(() => { isCupEmpty.value = false }, 100)
-      // 3. Drop default ice
-      const isIced = newProduct.id.includes('iced') || newProduct.id.includes('cold') || newProduct.category === 'iced'
-      const t2 = setTimeout(() => { selectedIce.value = isIced ? 'regular' : 'none' }, 280)
-      // 4. Barista default toppings
-      const t3 = setTimeout(() => {
-        withCream.value = newProduct.id.includes('mocha')
-        withCocoa.value = newProduct.id.includes('cappuccino')
-        withCaramel.value = newProduct.id.includes('macchiato')
-      }, 540)
-
-      introTimers.push(t1, t2, t3)
+      // Initialize beverage fully poured, iced, and crafted immediately
+      isCupEmpty.value = false
+      selectedIce.value = 'regular'
+      withCream.value = newProduct.id.includes('mocha') || newProduct.id.includes('cappuccino')
+      withCocoa.value = newProduct.id.includes('cappuccino') || newProduct.id.includes('mocha')
+      withCaramel.value = newProduct.id.includes('macchiato') || newProduct.id.includes('caramel')
     }
   }
 )
 
+// When customer switches between Hot & Iced Cold, automatically sync ice
+watch(selectedTemp, (newTemp) => {
+  if (newTemp === 'iced') {
+    if (selectedIce.value === 'none') {
+      selectedIce.value = 'regular'
+    }
+  } else if (newTemp === 'hot') {
+    selectedIce.value = 'none'
+  }
+})
+
 // Mouse & Touch 3D Tilt Handlers
 const handleMouseMove = (e: MouseEvent) => {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const el = e.currentTarget as HTMLElement
   if (!el) return
   const rect = el.getBoundingClientRect()
   const mouseX = e.clientX - (rect.left + rect.width / 2)
   const mouseY = e.clientY - (rect.top + rect.height / 2)
-  targetTiltX.value = -Math.max(-14, Math.min(14, (mouseY / (rect.height / 2)) * 14))
-  targetTiltY.value = Math.max(-16, Math.min(16, (mouseX / (rect.width / 2)) * 16))
+  targetTiltX.value = -Math.max(-12, Math.min(12, (mouseY / (rect.height / 2)) * 12))
+  targetTiltY.value = Math.max(-14, Math.min(14, (mouseX / (rect.width / 2)) * 14))
 }
 
 const handleMouseLeave = () => {
@@ -159,6 +190,7 @@ const handleMouseLeave = () => {
 }
 
 const handleTouchMove = (e: TouchEvent) => {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   if (!e.touches.length) return
   const touch = e.touches[0]
   const el = e.currentTarget as HTMLElement
@@ -166,8 +198,8 @@ const handleTouchMove = (e: TouchEvent) => {
   const rect = el.getBoundingClientRect()
   const touchX = touch.clientX - (rect.left + rect.width / 2)
   const touchY = touch.clientY - (rect.top + rect.height / 2)
-  targetTiltX.value = -Math.max(-14, Math.min(14, (touchY / (rect.height / 2)) * 14))
-  targetTiltY.value = Math.max(-16, Math.min(16, (touchX / (rect.width / 2)) * 16))
+  targetTiltX.value = -Math.max(-12, Math.min(12, (touchY / (rect.height / 2)) * 12))
+  targetTiltY.value = Math.max(-14, Math.min(14, (touchX / (rect.width / 2)) * 14))
 }
 
 const handleTouchEnd = () => {
@@ -175,30 +207,11 @@ const handleTouchEnd = () => {
   targetTiltY.value = 0
 }
 
-// Device Orientation Tilt
 function handleOrientation(e: DeviceOrientationEvent) {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   if (e.gamma !== null && e.beta !== null) {
-    targetTiltY.value = (Math.max(-25, Math.min(25, e.gamma)) / 25) * 14
-    targetTiltX.value = -(Math.max(-25, Math.min(25, e.beta - 45)) / 25) * 12
-  }
-}
-
-function initDeviceOrientation() {
-  if (!import.meta.client || typeof window === 'undefined') return
-  if (window.DeviceOrientationEvent) {
-    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      const requestPerm = () => {
-        ;(DeviceOrientationEvent as any).requestPermission()
-          .then((permissionState: string) => {
-            if (permissionState === 'granted') window.addEventListener('deviceorientation', handleOrientation)
-          })
-          .catch(() => {})
-        window.removeEventListener('click', requestPerm)
-      }
-      window.addEventListener('click', requestPerm, { once: true })
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation)
-    }
+    targetTiltY.value = (Math.max(-20, Math.min(20, e.gamma)) / 20) * 12
+    targetTiltX.value = -(Math.max(-20, Math.min(20, e.beta - 45)) / 20) * 10
   }
 }
 
@@ -209,8 +222,10 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 onMounted(() => {
   tiltFrameId = requestAnimationFrame(updateTilt)
-  initDeviceOrientation()
   window.addEventListener('keydown', handleKeydown)
+  if (typeof window !== 'undefined' && window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', handleOrientation)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -223,66 +238,85 @@ onBeforeUnmount(() => {
 })
 
 // Interactive triggers
-const setIce = (level: 'none' | 'less' | 'regular' | 'extra') => {
-  isCupEmpty.value = false
-  selectedIce.value = level
+const toggleEmptyCup = () => {
+  isCupEmpty.value = !isCupEmpty.value
 }
 
-const setSweetness = (sweet: string) => {
-  isCupEmpty.value = false
-  selectedSweetness.value = sweet
-}
-
-const toggleCream = () => { isCupEmpty.value = false; withCream.value = !withCream.value }
-const toggleExtraShot = () => {
-  isCupEmpty.value = false
-  withExtraShot.value = !withExtraShot.value
-  if (withExtraShot.value) {
-    isEspressoPouring.value = true
-    setTimeout(() => { isEspressoPouring.value = false }, 1200)
-  }
-}
-const toggleCocoa = () => { isCupEmpty.value = false; withCocoa.value = !withCocoa.value }
-const toggleCaramel = () => { isCupEmpty.value = false; withCaramel.value = !withCaramel.value }
-const toggleEmptyCup = () => { isCupEmpty.value = !isCupEmpty.value }
-
-// Dynamic Price
+// Dynamic Price Calculation
 const unitPrice = computed(() => {
   if (!product.value) return 0
   let price = product.value.price
   if (selectedSize.value === 'S') price -= 0.30
   if (selectedSize.value === 'L') price += 0.50
+  if (selectedFlavor.value !== 'classic') price += 0.40
+  if (selectedMilk.value !== 'whole') price += 0.50
   if (withCream.value) price += 0.50
   if (withExtraShot.value) price += 0.60
   if (withCaramel.value) price += 0.25
+  if (withBakeryButter.value) price += 0.40
   return Math.max(price, 0.50)
 })
 
 const totalPrice = computed(() => unitPrice.value * quantity.value)
-const formattedTotalPrice = computed(() => `$${totalPrice.value.toFixed(2)}`)
 
-// Sweetness label
-const sweetnessLabel = computed(() => {
-  const km = isKhmer.value
-  switch (selectedSweetness.value) {
-    case '0%':   return km ? 'ឥតស្ករ (Sugar-Free)' : 'Sugar-Free (0%)'
-    case '25%':  return km ? 'ផ្អែមតិច (Light)' : 'Light Sweet (25%)'
-    case '50%':  return km ? 'ផ្អែមល្មម (Balanced)' : 'Balanced (50%)'
-    case '75%':  return km ? 'ផ្អែមច្រើន (Sweet)' : 'Sweet (75%)'
-    case '100%': return km ? 'ផ្អែមខ្លាំង (Extra)' : 'Extra Sweet (100%)'
-    default:     return selectedSweetness.value
-  }
-})
+// Dynamic Flavor options
+const flavorOptions = computed(() => [
+  { id: 'classic', label: isKhmer.value ? 'ដើម' : 'Classic', subtitle: '+$0.00' },
+  { id: 'vanilla', label: isKhmer.value ? 'វ៉ានីឡា' : 'Vanilla', subtitle: '+$0.40' },
+  { id: 'caramel', label: isKhmer.value ? 'ការ៉ាមែល' : 'Caramel', subtitle: '+$0.40' },
+  { id: 'hazelnut', label: isKhmer.value ? 'ហាស្សែលណាត់' : 'Hazelnut', subtitle: '+$0.40' },
+  { id: 'coconut', label: isKhmer.value ? 'ដូងលីង' : 'Coconut', subtitle: '+$0.40' },
+])
 
-// Add to Cart
-const handleAddToCart = () => {
-  if (!product.value) return
+// Milk options
+const milkOptions = computed(() => [
+  { id: 'whole', label: isKhmer.value ? 'ទឹកដោះគោស្រស់' : 'Whole Milk', subtitle: 'Standard' },
+  { id: 'oat', label: isKhmer.value ? 'ទឹកដោះគោ Oat' : 'Oat Milk', subtitle: '+$0.50' },
+  { id: 'almond', label: isKhmer.value ? 'អាល់ម៉ុន' : 'Almond Milk', subtitle: '+$0.50' },
+])
+
+// Size options
+const sizeOptions = computed(() => [
+  { id: 'S', label: 'S', subtitle: '8 oz (−$0.30)' },
+  { id: 'M', label: 'M', subtitle: '12 oz (Regular)' },
+  { id: 'L', label: 'L', subtitle: '16 oz (+$0.50)' },
+])
+
+// Ice options
+const iceOptions = computed(() => [
+  { id: 'none', label: isKhmer.value ? 'គ្មាន' : 'None', subtitle: '0 cubes' },
+  { id: 'less', label: isKhmer.value ? 'តិច' : 'Less', subtitle: '5 cubes' },
+  { id: 'regular', label: isKhmer.value ? 'ធម្មតា' : 'Regular', subtitle: '9 cubes' },
+  { id: 'extra', label: isKhmer.value ? 'ច្រើន' : 'Extra', subtitle: '14 cubes' },
+])
+
+// Temperature options
+const tempOptions = computed(() => [
+  { id: 'iced', label: isKhmer.value ? 'ត្រជាក់ (Iced)' : 'Iced Cold', subtitle: '❄️ Chilled' },
+  { id: 'hot', label: isKhmer.value ? 'ក្តៅ (Hot)' : 'Steamed Hot', subtitle: '☕ Warm' },
+])
+
+// Sweetness options
+const sweetOptions = ['0%', '25%', '50%', '75%', '100%'].map(s => ({
+  id: s,
+  label: s,
+}))
+
+// Realistic Add to Cart with Flying Arc Animation
+const handleAddToCart = async () => {
+  if (!product.value || isAddingToCart.value) return
+  isAddingToCart.value = true
+
   const toppings: string[] = []
   if (withCocoa.value) toppings.push('Cocoa Dust')
   if (withCaramel.value) toppings.push('Caramel Drizzle')
+  if (withBakeryButter.value) toppings.push('French Butter')
 
   const customization: CartCustomization = {
     size: selectedSize.value,
+    temperature: selectedTemp.value,
+    flavor: selectedFlavor.value !== 'classic' ? selectedFlavor.value : undefined,
+    milk: selectedMilk.value !== 'whole' ? selectedMilk.value : undefined,
     iceLevel: selectedIce.value !== 'none' ? `Ice: ${selectedIce.value}` : 'No Ice',
     sweetness: `Sugar: ${selectedSweetness.value}`,
     cream: withCream.value,
@@ -290,25 +324,47 @@ const handleAddToCart = () => {
     toppings,
   }
 
+  // 1. Play tactile spatial Add to Cart acoustic chime
+  playAddToCart(0.5)
+
+  // 2. Launch parabolic flying product animation directly from the cup
+  const sourceElement = cupVisualRef.value || showcaseRef.value
+  if (sourceElement) {
+    flyToCart({
+      sourceEl: sourceElement,
+      imageSrc: product.value.image,
+      glowColor: 'rgba(234, 163, 75, 0.45)',
+      duration: 0.76,
+    })
+  }
+
+  // 3. Commit to Pinia store
   cartStore.addCustomizedItem(product.value, customization, unitPrice.value, quantity.value)
+
+  // 4. Tactile button state feedback
   isOrderAdded.value = true
+
   setTimeout(() => {
     isOrderAdded.value = false
+    isAddingToCart.value = false
     cartStore.closeProductDetail()
-  }, 700)
+  }, 780)
 }
 
-const close = () => cartStore.closeProductDetail()
+const close = () => {
+  if (isAddingToCart.value) return
+  cartStore.closeProductDetail()
+}
 </script>
 
 <template>
   <ClientOnly>
     <teleport to="body">
       <!-- =====================================================
-           BACKDROP — handles fade in/out of the overlay
+           BACKDROP — Soft, Natural Depth Blur Fade
            ===================================================== -->
       <Transition
-        enter-active-class="transition-opacity duration-300 ease-out"
+        enter-active-class="transition-opacity duration-350 ease-out"
         enter-from-class="opacity-0"
         enter-to-class="opacity-100"
         leave-active-class="transition-opacity duration-250 ease-in"
@@ -317,14 +373,15 @@ const close = () => cartStore.closeProductDetail()
       >
         <div
           v-if="cartStore.isProductDetailOpen && product"
-          class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
+          class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md"
           aria-hidden="true"
           @click="close"
         />
       </Transition>
 
       <!-- =====================================================
-           MODAL PANEL — separate transition for panel motion
+           MODAL / BOTTOM SHEET PANEL
+           Responsive: Native Bottom-Sheet on mobile, Centered Dialog on desktop
            ===================================================== -->
       <Transition
         enter-active-class="transition-modal-enter"
@@ -336,20 +393,25 @@ const close = () => cartStore.closeProductDetail()
       >
         <div
           v-if="cartStore.isProductDetailOpen && product"
-          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pointer-events-none"
+          class="fixed inset-0 z-[60] flex items-end lg:items-center justify-center p-0 sm:p-4 lg:p-6 pointer-events-none"
           aria-modal="true"
           role="dialog"
           :aria-label="product?.name"
         >
           <!-- Modal Container -->
           <div
-            class="relative w-full max-w-4xl rounded-[2.5rem] liquid-glass-modal flex flex-col lg:flex-row overflow-hidden shadow-2xl border border-white/15 pointer-events-auto max-h-[95dvh]"
+            class="relative w-full max-w-4xl rounded-t-[2.5rem] lg:rounded-[2.5rem] liquid-glass-modal flex flex-col lg:flex-row overflow-hidden shadow-2xl border border-white/15 pointer-events-auto max-h-[92dvh] lg:max-h-[90dvh]"
             @click.stop
           >
+            <!-- Mobile Drag Handle Bar Indicator -->
+            <div class="lg:hidden w-full flex items-center justify-center pt-3 pb-1 shrink-0">
+              <div class="w-12 h-1.5 rounded-full bg-white/20" />
+            </div>
+
             <!-- Close Button -->
             <button
               type="button"
-              class="absolute top-5 right-5 z-40 p-2.5 rounded-full text-coffee-sand/80 hover:text-white bg-black/30 hover:bg-white/15 border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer active:scale-90"
+              class="absolute top-4 sm:top-5 right-4 sm:right-5 z-40 p-2.5 rounded-full text-coffee-sand/80 hover:text-white bg-black/40 hover:bg-white/15 border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer active:scale-90"
               @click="close"
               aria-label="Close product details"
             >
@@ -357,27 +419,37 @@ const close = () => cartStore.closeProductDetail()
             </button>
 
             <!-- ================================================
-                 LEFT COLUMN: Interactive 3D Drink Showcase
+                 LEFT COLUMN: Realistic 3D Showcase & Variant Preview
                  ================================================ -->
             <div
-              class="lg:w-1/2 p-6 sm:p-8 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#2B1D16]/60 via-[#1F140E]/80 to-[#120B07] border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden cursor-grab active:cursor-grabbing select-none shrink-0"
-              @mousemove="handleMouseMove"
-              @mouseleave="handleMouseLeave"
-              @touchmove.passive="handleTouchMove"
-              @touchend="handleTouchEnd"
-              @touchcancel="handleTouchEnd"
+              ref="showcaseRef"
+              class="lg:w-1/2 p-5 sm:p-7 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#2B1D16]/70 via-[#1F140E]/85 to-[#120B07] border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden select-none shrink-0 min-h-[330px] lg:min-h-auto"
             >
-              <!-- Ambient Radial Spotlight -->
+              <!-- Dynamic Ambient Spotlight -->
               <div
                 class="absolute w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all duration-700 -z-0 opacity-70"
                 :class="ambientGlowColor"
               />
-              <!-- Caustic floor shadow -->
-              <div class="absolute bottom-10 w-52 h-10 rounded-[100%] bg-black/60 blur-md pointer-events-none -z-0" />
-              <div class="absolute bottom-12 w-40 h-6 rounded-[100%] bg-amber-500/10 blur-lg pointer-events-none -z-0" />
 
-              <!-- Top Badges -->
-              <div class="w-full flex items-center justify-between z-20 gap-2">
+              <!-- Physically Believable Floor Shadows (breathing with size) -->
+              <div
+                class="absolute bottom-9 rounded-[100%] bg-black/65 blur-md pointer-events-none -z-0 transition-all duration-300 ease-out"
+                :style="{
+                  width: `${selectedSize === 'S' ? 180 : selectedSize === 'M' ? 210 : 235}px`,
+                  height: '36px',
+                }"
+              />
+              <div
+                class="absolute bottom-11 rounded-[100%] blur-lg pointer-events-none -z-0 transition-all duration-500"
+                :class="ambientGlowColor"
+                :style="{
+                  width: `${selectedSize === 'S' ? 140 : selectedSize === 'M' ? 160 : 185}px`,
+                  height: '24px',
+                }"
+              />
+
+              <!-- Top Badges & Temperature Switcher -->
+              <div class="w-full flex items-center justify-between z-20 gap-2 pr-10 lg:pr-0">
                 <div class="flex items-center gap-2">
                   <!-- Rating Pill -->
                   <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full liquid-glass-pill text-xs font-bold text-white shadow-sm border border-white/10">
@@ -389,7 +461,7 @@ const close = () => cartStore.closeProductDetail()
                   <!-- Temperature Badge -->
                   <div
                     v-if="product.category !== 'bakery'"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-md"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-md transition-colors duration-300"
                     :class="isDrinkIced
                       ? 'bg-teal-500/15 text-teal-300 border-teal-400/30'
                       : 'bg-amber-500/15 text-amber-300 border-amber-400/30'"
@@ -400,8 +472,9 @@ const close = () => cartStore.closeProductDetail()
                   </div>
                 </div>
 
-                <!-- Empty/Filled Toggle -->
+                <!-- Empty / Filled Re-craft Toggle -->
                 <button
+                  v-if="product.category !== 'bakery'"
                   type="button"
                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer border active:scale-95 shadow-sm"
                   :class="isCupEmpty
@@ -410,67 +483,74 @@ const close = () => cartStore.closeProductDetail()
                   :title="isCupEmpty ? 'Re-craft beverage' : 'View empty glass'"
                   @click="toggleEmptyCup"
                 >
-                  <RotateCcw v-if="isCupEmpty" class="w-3.5 h-3.5 text-amber-300 animate-spin-once" />
+                  <RotateCcw v-if="isCupEmpty" class="w-3.5 h-3.5 text-amber-300" />
                   <Eye v-else class="w-3.5 h-3.5 text-teal-accent" />
                   <span :class="isKhmer ? 'font-khmer' : ''">
-                    {{ isCupEmpty ? (isKhmer ? 'កែវទទេ' : 'Empty Glass') : (isKhmer ? 'ភេសជ្ជៈពេញ' : 'Crafted Cup') }}
+                    {{ isCupEmpty ? (isKhmer ? 'កែវទទេ' : 'Empty Glass') : (isKhmer ? 'ភេសជ្ជៈពេញ' : 'Filled Cup') }}
                   </span>
                 </button>
               </div>
 
-              <!-- 3D Cup Viewport -->
-              <div class="relative w-full my-4 z-10 flex items-center justify-center min-h-[300px]">
-                <!-- Bakery Display -->
-                <div
-                  v-if="product.category === 'bakery'"
-                  class="relative w-full h-72 flex flex-col items-center justify-center"
-                >
-                  <div class="relative w-60 h-60 flex items-center justify-center group">
-                    <div class="absolute inset-0 rounded-full bg-amber-500/20 blur-2xl pointer-events-none" />
-                    <NuxtImg
-                      :src="product.image"
-                      :alt="product.name"
-                      width="240"
-                      height="240"
-                      class="w-full h-full object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-105"
-                    />
+              <!-- Product Visualizer Viewport with Smooth Crossfade -->
+              <div
+                ref="cupVisualRef"
+                class="relative w-full my-auto z-10 flex items-center justify-center min-h-[280px] lg:min-h-[320px]"
+              >
+                <Transition name="product-crossfade" mode="out-in">
+                  <!-- Bakery Item Presentation -->
+                  <div
+                    v-if="product.category === 'bakery'"
+                    :key="`bakery-${product.id}`"
+                    class="relative w-full h-64 sm:h-72 flex flex-col items-center justify-center"
+                  >
+                    <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center group">
+                      <div class="absolute inset-0 rounded-full bg-amber-500/20 blur-2xl pointer-events-none" />
+                      <NuxtImg
+                        :src="product.image"
+                        :alt="product.name"
+                        width="240"
+                        height="240"
+                        class="w-full h-full object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <!-- Interactive Glass Cup -->
-                <InteractiveGlassCup
-                  v-else
-                  :product-id="product.id"
-                  :product-name="product.name"
-                  :size="selectedSize"
-                  :ice-level="selectedIce"
-                  :with-cream="withCream"
-                  :with-extra-shot="withExtraShot"
-                  :with-cocoa="withCocoa"
-                  :with-caramel="withCaramel"
-                  :is-pouring="isEspressoPouring"
-                  :tilt-x="tiltX"
-                  :tilt-y="tiltY"
-                  :is-empty="isCupEmpty"
-                  :sweetness="selectedSweetness"
-                />
-              </div>
-
-              <!-- 3D Hint Badge -->
-              <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[11px] text-coffee-sand/80 backdrop-blur-md z-20 shadow-sm">
-                <Sparkles class="w-3.5 h-3.5 text-teal-accent animate-pulse" />
-                <span>{{ isKhmer ? 'អូស ឬបង្វិលទូរសព្ទដើម្បីមើលមុំ 3D' : 'Drag or tilt phone to inspect in 3D' }}</span>
+                  <!-- 8D WebGL 3D Interactive Coffee Canvas -->
+                  <div
+                    v-else
+                    :key="`three-${product.id}`"
+                    class="w-full flex items-center justify-center"
+                  >
+                    <ClientOnly>
+                      <ThreeIcedCoffeeCup
+                        :product-id="product.id"
+                        :product-name="product.name"
+                        :size="selectedSize"
+                        :temperature="selectedTemp"
+                        :ice-level="selectedIce"
+                        :milk="selectedMilk"
+                        :with-cream="withCream"
+                        :with-extra-shot="withExtraShot"
+                        :with-cocoa="withCocoa"
+                        :with-caramel="withCaramel"
+                        :sweetness="selectedSweetness"
+                        :flavor="selectedFlavor"
+                        :is-empty="isCupEmpty"
+                      />
+                    </ClientOnly>
+                  </div>
+                </Transition>
               </div>
             </div>
 
             <!-- ================================================
-                 RIGHT COLUMN: Customization Panel
+                 RIGHT COLUMN: Refined Customization Accordion
                  ================================================ -->
             <div class="lg:w-1/2 flex flex-col overflow-y-auto bg-[#1C120C]/90">
               <!-- Scrollable content -->
-              <div class="flex-1 p-6 sm:p-8 space-y-5 overflow-y-auto scrollbar-thin">
-                <!-- Title & Description -->
-                <div>
+              <div class="flex-1 p-5 sm:p-7 space-y-5 overflow-y-auto scrollbar-thin">
+                <!-- Title & Description Header -->
+                <div class="pb-2 border-b border-white/10">
                   <div class="flex items-baseline justify-between gap-3">
                     <h2
                       class="text-2xl sm:text-3xl font-extrabold text-[#E5B588] tracking-tight"
@@ -489,193 +569,264 @@ const close = () => cartStore.closeProductDetail()
                   >
                     {{ product.description }}
                   </p>
+                </div>
 
-                  <!-- Barista Composition Notes -->
-                  <div v-if="product.composition" class="mt-3.5 p-3 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-2.5 shadow-inner">
-                    <Coffee class="w-4 h-4 text-teal-accent shrink-0 mt-0.5" />
-                    <p class="text-xs text-[#D1B8A3] leading-normal font-medium" :class="isKhmer ? 'font-khmer' : ''">
-                      {{ product.composition }}
-                    </p>
+                <!-- Customizer Sections (Drink Products) -->
+                <div v-if="product.category !== 'bakery'" class="space-y-4">
+                  <!-- SECTION 1: Size & Serving Temperature -->
+                  <div class="rounded-2xl bg-black/30 border border-white/10 overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-coffee-sand hover:text-white transition-colors cursor-pointer"
+                      @click="toggleSection('size')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <Layers class="w-4 h-4 text-teal-accent" />
+                        <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'ទំហំកែវ និងកម្ដៅ' : 'Size & Temperature' }}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono text-teal-accent">Size {{ selectedSize }}</span>
+                        <ChevronDown class="w-4 h-4 transition-transform duration-200" :class="openSections.size ? 'rotate-180' : ''" />
+                      </div>
+                    </button>
+
+                    <div
+                      class="grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      :class="openSections.size ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                      <div class="overflow-hidden px-4 pb-4 space-y-3.5">
+                        <!-- Cup Size Sliding Segmented Control -->
+                        <div>
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'ជ្រើសរើសទំហំ:' : 'Select Size:' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedSize"
+                            :options="sizeOptions"
+                          />
+                        </div>
+
+                        <!-- Hot / Iced Temperature Switcher -->
+                        <div>
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'កម្ដៅភេសជ្ជៈ:' : 'Serving Style:' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedTemp"
+                            :options="tempOptions"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION 2: Flavors & Milk Customization -->
+                  <div class="rounded-2xl bg-black/30 border border-white/10 overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-coffee-sand hover:text-white transition-colors cursor-pointer"
+                      @click="toggleSection('flavor')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <Droplets class="w-4 h-4 text-teal-accent" />
+                        <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'រសជាតិស៊ីរ៉ូ និងទឹកដោះគោ' : 'Flavor Syrup & Milk' }}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono text-teal-accent capitalize">{{ selectedFlavor }}</span>
+                        <ChevronDown class="w-4 h-4 transition-transform duration-200" :class="openSections.flavor ? 'rotate-180' : ''" />
+                      </div>
+                    </button>
+
+                    <div
+                      class="grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      :class="openSections.flavor ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                      <div class="overflow-hidden px-4 pb-4 space-y-3.5">
+                        <!-- Flavor Syrup Selector -->
+                        <div>
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'ស៊ីរ៉ូបន្ថែម:' : 'Flavor Profile (+ $0.40):' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedFlavor"
+                            :options="flavorOptions"
+                          />
+                        </div>
+
+                        <!-- Milk Base Selector -->
+                        <div>
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'ជម្រើសទឹកដោះគោ:' : 'Milk Alternative:' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedMilk"
+                            :options="milkOptions"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION 3: Ice Level & Sweetness Balance -->
+                  <div class="rounded-2xl bg-black/30 border border-white/10 overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-coffee-sand hover:text-white transition-colors cursor-pointer"
+                      @click="toggleSection('iceSweet')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <Snowflake class="w-4 h-4 text-teal-accent" />
+                        <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'ទឹកកក និងកម្រិតផ្អែម' : 'Ice & Sweetness Balance' }}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono text-teal-accent">{{ selectedSweetness }} sugar</span>
+                        <ChevronDown class="w-4 h-4 transition-transform duration-200" :class="openSections.iceSweet ? 'rotate-180' : ''" />
+                      </div>
+                    </button>
+
+                    <div
+                      class="grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      :class="openSections.iceSweet ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                      <div class="overflow-hidden px-4 pb-4 space-y-3.5">
+                        <!-- Ice Level (if drink is iced) -->
+                        <div v-if="isDrinkIced">
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'កម្រិតទឹកកក:' : 'Ice Level:' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedIce"
+                            :options="iceOptions"
+                          />
+                        </div>
+
+                        <!-- Sweetness Percentage -->
+                        <div>
+                          <span class="text-[11px] text-coffee-muted font-medium mb-1.5 block">
+                            {{ isKhmer ? 'កម្រិតជាតិស្ករ:' : 'Sweetness Level:' }}
+                          </span>
+                          <SlidingSegmentedControl
+                            v-model="selectedSweetness"
+                            :options="sweetOptions"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION 4: Barista Extras & Toppings -->
+                  <div class="rounded-2xl bg-black/30 border border-white/10 overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-coffee-sand hover:text-white transition-colors cursor-pointer"
+                      @click="toggleSection('extras')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <Sparkles class="w-4 h-4 text-teal-accent" />
+                        <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'គ្រឿងបន្ថែមពិសេស (Barista Extras)' : 'Barista Extras & Toppings' }}</span>
+                      </div>
+                      <ChevronDown class="w-4 h-4 transition-transform duration-200" :class="openSections.extras ? 'rotate-180' : ''" />
+                    </button>
+
+                    <div
+                      class="grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      :class="openSections.extras ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                      <div class="overflow-hidden px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <!-- Whipped Cream Checkbox -->
+                        <SpringCheckbox
+                          v-model="withCream"
+                          :label="isKhmer ? 'ក្រែមវីប Whip' : 'Whipped Cream'"
+                          price-extra="+$0.50"
+                          icon-emoji="🍦"
+                          active-color="amber"
+                          @update:model-value="isCupEmpty = false"
+                        />
+
+                        <!-- Extra Espresso Shot Checkbox -->
+                        <SpringCheckbox
+                          v-model="withExtraShot"
+                          :label="isKhmer ? 'ថែមស្ហុតកាហ្វេ' : 'Extra Shot'"
+                          price-extra="+$0.60"
+                          icon-emoji="☕"
+                          active-color="teal"
+                          @update:model-value="isCupEmpty = false"
+                        />
+
+                        <!-- Cocoa Dusting Checkbox -->
+                        <SpringCheckbox
+                          v-model="withCocoa"
+                          :label="isKhmer ? 'រោយម្សៅកាកាវ' : 'Cocoa Dusting'"
+                          price-extra="Free"
+                          icon-emoji="✨"
+                          active-color="amber"
+                          @update:model-value="isCupEmpty = false"
+                        />
+
+                        <!-- Caramel Drizzle Checkbox -->
+                        <SpringCheckbox
+                          v-model="withCaramel"
+                          :label="isKhmer ? 'ទឹកការ៉ាមែល' : 'Caramel Drizzle'"
+                          price-extra="+$0.25"
+                          icon-emoji="🍯"
+                          active-color="amber"
+                          @update:model-value="isCupEmpty = false"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SECTION 5: Barista Composition Notes -->
+                  <div v-if="product.composition" class="rounded-2xl bg-black/30 border border-white/10 overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-bold text-coffee-sand hover:text-white transition-colors cursor-pointer"
+                      @click="toggleSection('notes')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <Coffee class="w-4 h-4 text-teal-accent" />
+                        <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'រូបមន្តផ្សំប្រចាំហាង' : 'Barista Recipe Notes' }}</span>
+                      </div>
+                      <ChevronDown class="w-4 h-4 transition-transform duration-200" :class="openSections.notes ? 'rotate-180' : ''" />
+                    </button>
+
+                    <div
+                      class="grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      :class="openSections.notes ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                      <div class="overflow-hidden px-4 pb-4">
+                        <p class="text-xs text-[#D1B8A3] leading-relaxed font-medium" :class="isKhmer ? 'font-khmer' : ''">
+                          {{ product.composition }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <!-- Customizer Controls (drinks only) -->
-                <div v-if="product.category !== 'bakery'" class="space-y-5">
-                  <!-- 1. Size -->
-                  <div>
-                    <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2">
-                      <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'ទំហំកែវ:' : 'Cup Size:' }}</span>
-                      <span class="text-teal-accent font-mono text-[11px]">
-                        {{ selectedSize === 'S' ? 'Small 8 oz (−$0.30)' : selectedSize === 'M' ? 'Regular 12 oz' : 'Large 16 oz (+$0.50)' }}
-                      </span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-black/50 border border-white/10 shadow-inner">
-                      <button
-                        v-for="size in (['S', 'M', 'L'] as const)"
-                        :key="size"
-                        type="button"
-                        class="py-2 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="selectedSize === size
-                          ? 'liquid-glass-button text-teal-darkText shadow-md scale-[1.02]'
-                          : 'text-coffee-muted hover:text-white hover:bg-white/5'"
-                        @click="selectedSize = size; isCupEmpty = false"
-                      >
-                        <span>{{ size }}</span>
-                        <span class="text-[10px] font-normal opacity-85 font-mono">
-                          {{ size === 'S' ? '8 oz' : size === 'M' ? '12 oz' : '16 oz' }}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 2. Ice Level -->
-                  <div>
-                    <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2">
-                      <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'កម្រិតទឹកកក:' : 'Ice Level:' }}</span>
-                      <span class="text-teal-accent text-[11px] font-mono">
-                        {{ selectedIce === 'none' ? '0 cubes' : selectedIce === 'less' ? '3 cubes' : selectedIce === 'regular' ? '5 cubes' : '7 cubes' }}
-                      </span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">
-                      <button
-                        v-for="ice in [
-                          { id: 'none' as const,    label: isKhmer ? 'គ្មាន' : 'None',    icon: '0' },
-                          { id: 'less' as const,    label: isKhmer ? 'តិច' : 'Less',      icon: '3' },
-                          { id: 'regular' as const, label: isKhmer ? 'ធម្មតា' : 'Reg',    icon: '5' },
-                          { id: 'extra' as const,   label: isKhmer ? 'ច្រើន' : 'Extra',   icon: '7' },
-                        ]"
-                        :key="ice.id"
-                        type="button"
-                        class="py-2.5 px-1 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5 border active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="selectedIce === ice.id
-                          ? 'bg-teal-accent text-teal-darkText border-teal-accent font-extrabold shadow-md scale-[1.02]'
-                          : 'bg-[#261811] text-coffee-muted border-white/5 hover:text-white hover:border-white/15'"
-                        @click="setIce(ice.id)"
-                      >
-                        <span>{{ ice.label }}</span>
-                        <span class="text-[10px] opacity-80 font-mono">{{ ice.icon }}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 3. Sweetness -->
-                  <div>
-                    <div class="flex items-center justify-between text-xs font-bold text-coffee-sand mb-2">
-                      <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'កម្រិតផ្អែម:' : 'Sweetness:' }}</span>
-                      <span class="text-teal-accent font-mono text-[11px]">{{ sweetnessLabel }}</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-1 p-1.5 rounded-2xl bg-black/50 border border-white/10 shadow-inner">
-                      <button
-                        v-for="sweet in ['0%', '25%', '50%', '75%', '100%']"
-                        :key="sweet"
-                        type="button"
-                        class="flex-1 py-1.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer active:scale-95 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="selectedSweetness === sweet
-                          ? 'bg-coffee-sand text-[#1A1009] shadow-md'
-                          : 'text-coffee-muted hover:text-white hover:bg-white/5'"
-                        @click="setSweetness(sweet)"
-                      >
-                        {{ sweet }}
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 4. Barista Add-ons -->
-                  <div class="space-y-2.5">
-                    <span class="text-xs font-bold text-coffee-sand block" :class="isKhmer ? 'font-khmer' : ''">
-                      {{ isKhmer ? 'បន្ថែមពិសេស:' : 'Barista Add-ons:' }}
-                    </span>
-
-                    <div class="grid grid-cols-2 gap-2.5">
-                      <!-- Whipped Cream -->
-                      <button
-                        type="button"
-                        class="p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex items-center justify-between active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="withCream
-                          ? 'bg-amber-500/20 border-amber-400/50 text-white shadow-md ring-1 ring-amber-400/30'
-                          : 'bg-black/35 border-white/10 text-coffee-muted hover:border-white/20 hover:text-white'"
-                        @click="toggleCream"
-                      >
-                        <div class="min-w-0">
-                          <div class="text-xs font-bold text-coffee-sand flex items-center gap-1.5">
-                            <span class="text-base">🍦</span>
-                            <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'ក្រែម Whip' : 'Whip Cream' }}</span>
-                          </div>
-                          <span class="text-[11px] text-teal-accent font-mono font-bold">+ $0.50</span>
-                        </div>
-                        <div
-                          class="w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200 shrink-0"
-                          :class="withCream ? 'bg-amber-400 border-amber-400 text-black shadow-sm' : 'border-white/20'"
-                        >
-                          <Check v-if="withCream" class="w-3 h-3 stroke-[3]" />
-                        </div>
-                      </button>
-
-                      <!-- Extra Espresso Shot -->
-                      <button
-                        type="button"
-                        class="p-3 rounded-2xl text-left border transition-all duration-200 cursor-pointer flex items-center justify-between active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="withExtraShot
-                          ? 'bg-teal-accent/20 border-teal-accent/50 text-white shadow-md ring-1 ring-teal-accent/30'
-                          : 'bg-black/35 border-white/10 text-coffee-muted hover:border-white/20 hover:text-white'"
-                        @click="toggleExtraShot"
-                      >
-                        <div class="min-w-0">
-                          <div class="text-xs font-bold text-coffee-sand flex items-center gap-1.5">
-                            <span class="text-base">☕</span>
-                            <span :class="isKhmer ? 'font-khmer' : ''">{{ isKhmer ? 'ថែមស្ហុតកាហ្វេ' : 'Extra Shot' }}</span>
-                          </div>
-                          <span class="text-[11px] text-teal-accent font-mono font-bold">+ $0.60</span>
-                        </div>
-                        <div
-                          class="w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200 shrink-0"
-                          :class="withExtraShot ? 'bg-teal-accent border-teal-accent text-black shadow-sm' : 'border-white/20'"
-                        >
-                          <Check v-if="withExtraShot" class="w-3 h-3 stroke-[3]" />
-                        </div>
-                      </button>
-
-                      <!-- Cocoa Dusting -->
-                      <button
-                        type="button"
-                        class="p-2.5 rounded-xl text-left border text-xs font-medium transition-all duration-200 cursor-pointer flex items-center justify-between active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="withCocoa
-                          ? 'bg-amber-600/20 border-amber-500/40 text-white shadow-sm'
-                          : 'bg-black/25 border-white/10 text-coffee-muted hover:text-white hover:border-white/20'"
-                        @click="toggleCocoa"
-                      >
-                        <span :class="isKhmer ? 'font-khmer' : ''">✨ {{ isKhmer ? 'រោយម្សៅកាកាវ' : 'Cocoa Dusting' }}</span>
-                        <span v-if="withCocoa" class="text-teal-accent font-bold ml-2 shrink-0">✓</span>
-                      </button>
-
-                      <!-- Caramel Drizzle -->
-                      <button
-                        type="button"
-                        class="p-2.5 rounded-xl text-left border text-xs font-medium transition-all duration-200 cursor-pointer flex items-center justify-between active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-accent"
-                        :class="withCaramel
-                          ? 'bg-amber-600/20 border-amber-500/40 text-white shadow-sm'
-                          : 'bg-black/25 border-white/10 text-coffee-muted hover:text-white hover:border-white/20'"
-                        @click="toggleCaramel"
-                      >
-                        <div class="flex items-center gap-1 min-w-0">
-                          <span :class="isKhmer ? 'font-khmer' : ''">🍯 {{ isKhmer ? 'ទឹកការ៉ាមែល' : 'Caramel Drizzle' }}</span>
-                          <span class="text-[10px] text-teal-accent font-mono font-semibold shrink-0">+$0.25</span>
-                        </div>
-                        <span v-if="withCaramel" class="text-teal-accent font-bold ml-2 shrink-0">✓</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Bakery Serving Option -->
-                <div v-else class="py-4">
-                  <div class="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2 shadow-inner">
+                <!-- Bakery Customizer Controls -->
+                <div v-else class="space-y-4">
+                  <div class="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3 shadow-inner">
                     <span class="text-xs font-bold text-coffee-sand block" :class="isKhmer ? 'font-khmer' : ''">
                       {{ isKhmer ? 'សេវាកម្មដុតកម្ដៅ:' : 'Bakery Serving Option:' }}
                     </span>
-                    <p class="text-xs text-[#D1B8A3] leading-relaxed" :class="isKhmer ? 'font-khmer' : ''">
-                      {{ isKhmer ? 'នំប៉័ងដុតក្តៅៗថ្មីៗពីចង្ក្រាន ស្រួយស្រទាប់ខាងក្រៅ និងឈ្ងុយប៊័រខាងក្នុង ជូនលោកអ្នកភ្លាមៗ។' : 'Freshly toasted warm upon request for maximum flakiness and aroma.' }}
-                    </p>
+                    <SlidingSegmentedControl
+                      v-model="bakeryServingStyle"
+                      :options="[
+                        { id: 'toasted', label: isKhmer ? 'ដុតក្តៅៗ' : 'Warm Toasted', subtitle: 'Crispy & Flaky' },
+                        { id: 'fresh', label: isKhmer ? 'សីតុណ្ហភាពបន្ទប់' : 'Room Temp', subtitle: 'Standard' },
+                      ]"
+                    />
+
+                    <!-- Add Butter / Clotted Cream -->
+                    <div class="pt-2">
+                      <SpringCheckbox
+                        v-model="withBakeryButter"
+                        :label="isKhmer ? 'ប៊ឺបារាំងពិសេស' : 'French Clotted Butter'"
+                        price-extra="+$0.40"
+                        icon-emoji="🧈"
+                        active-color="amber"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -683,52 +834,53 @@ const close = () => cartStore.closeProductDetail()
               <!-- =====================================================
                    STICKY BOTTOM ACTION BAR
                    ===================================================== -->
-              <div class="p-6 sm:px-8 sm:pb-8 pt-4 border-t border-white/10 flex items-center justify-between gap-4 shrink-0 bg-[#1C120C]/95 backdrop-blur-sm">
-                <!-- Quantity Stepper -->
-                <div class="flex items-center gap-2.5 bg-black/50 rounded-full px-3 py-1.5 border border-white/15 shadow-inner shrink-0">
+              <div class="p-4 sm:p-6 lg:px-8 lg:pb-8 pt-3 border-t border-white/10 flex items-center justify-between gap-3.5 shrink-0 bg-[#1C120C]/95 backdrop-blur-md">
+                <!-- Quantity Stepper with Direction-aware Rolling Numbers -->
+                <div class="flex items-center gap-2 bg-black/60 rounded-full px-3 py-1.5 border border-white/15 shadow-inner shrink-0">
                   <button
                     type="button"
                     class="w-7 h-7 rounded-full flex items-center justify-center text-coffee-sand hover:text-white hover:bg-white/15 transition-all duration-150 active:scale-90 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    :disabled="quantity <= 1"
-                    @click="quantity = Math.max(1, quantity - 1)"
+                    :disabled="quantity <= 1 || isAddingToCart"
+                    @click="quantity > 1 && (quantity -= 1, playQuantityClick('down'))"
                     aria-label="Decrease quantity"
                   >
                     <Minus class="w-3.5 h-3.5" />
                   </button>
-                  <span class="text-sm font-black text-white min-w-5 text-center font-mono tabular-nums">
-                    {{ quantity }}
-                  </span>
+
+                  <AnimatedCounter :value="quantity" />
+
                   <button
                     type="button"
-                    class="w-7 h-7 rounded-full flex items-center justify-center text-coffee-sand hover:text-white hover:bg-white/15 transition-all duration-150 active:scale-90 cursor-pointer"
-                    @click="quantity += 1"
+                    class="w-7 h-7 rounded-full flex items-center justify-center text-coffee-sand hover:text-white hover:bg-white/15 transition-all duration-150 active:scale-90 cursor-pointer disabled:opacity-40"
+                    :disabled="isAddingToCart"
+                    @click="quantity += 1, playQuantityClick('up')"
                     aria-label="Increase quantity"
                   >
                     <Plus class="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <!-- Add to Order Button -->
+                <!-- Add to Order Button with Parabolic Flight Trigger -->
                 <button
                   type="button"
-                  class="flex-1 py-3.5 px-6 rounded-full font-black text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                  class="flex-1 py-3.5 px-6 rounded-full font-black text-xs sm:text-sm tracking-wide cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 select-none will-change-transform"
                   :class="isOrderAdded
-                    ? 'bg-emerald-500 text-white scale-[1.02] shadow-emerald-500/30'
+                    ? 'bg-emerald-500 text-white scale-[1.02] shadow-emerald-500/40'
                     : 'liquid-glass-button'"
+                  :disabled="isAddingToCart"
                   @click="handleAddToCart"
                 >
-                  <Check v-if="isOrderAdded" class="w-4 h-4 stroke-[3] shrink-0" />
-                  <ShoppingBag v-else class="w-4 h-4 shrink-0" />
+                  <Check v-if="isOrderAdded" class="w-4 h-4 stroke-[3] shrink-0 animate-scaleIn" />
+                  <ShoppingBag v-else class="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5" />
+
                   <span :class="isKhmer ? 'font-khmer' : ''">
                     {{ isOrderAdded ? (isKhmer ? 'បានបញ្ចូល!' : 'Added!') : (isKhmer ? 'ដាក់កុម្ម៉ង់' : 'Add to Order') }}
                   </span>
+
                   <span class="opacity-60">•</span>
-                  <span
-                    class="font-mono transition-all duration-300 inline-block tabular-nums"
-                    :class="pricePulse ? 'scale-110 text-white font-bold' : ''"
-                  >
-                    {{ formattedTotalPrice }}
-                  </span>
+
+                  <!-- Smooth Animated Price Tween -->
+                  <AnimatedPrice :value="totalPrice" />
                 </button>
               </div>
             </div>
@@ -741,23 +893,26 @@ const close = () => cartStore.closeProductDetail()
 
 <style scoped>
 /* =========================================================
-   Modal enter/leave transitions — smooth scale + fade + slide
+   Realistic Modal / Bottom-Sheet Transitions
+   Desktop: Smooth spring scale & soft fade
+   Mobile: Native bottom sheet slide-up
    ========================================================= */
 .transition-modal-enter {
   transition:
-    opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .transition-modal-leave {
   transition:
-    opacity 0.22s cubic-bezier(0.4, 0, 1, 1),
-    transform 0.22s cubic-bezier(0.4, 0, 1, 1);
+    opacity 0.24s cubic-bezier(0.4, 0, 1, 1),
+    transform 0.24s cubic-bezier(0.4, 0, 1, 1);
 }
 
+/* Desktop dialog styling */
 .modal-hidden {
   opacity: 0;
-  transform: scale(0.96) translateY(16px);
+  transform: scale(0.95) translateY(18px);
 }
 
 .modal-visible {
@@ -765,9 +920,45 @@ const close = () => cartStore.closeProductDetail()
   transform: scale(1) translateY(0);
 }
 
-/* =========================================================
-   Right column thin scrollbar
-   ========================================================= */
+/* Mobile bottom sheet translation */
+@media (max-width: 1023px) {
+  .modal-hidden {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  .modal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Product crossfade transitions between variants */
+.product-crossfade-enter-active,
+.product-crossfade-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-crossfade-enter-from {
+  opacity: 0;
+  transform: scale(0.96) translateY(6px);
+}
+
+.product-crossfade-leave-to {
+  opacity: 0;
+  transform: scale(1.02) translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-modal-enter,
+  .transition-modal-leave,
+  .product-crossfade-enter-active,
+  .product-crossfade-leave-active {
+    transition: opacity 0.15s ease-out !important;
+    transform: none !important;
+  }
+}
+
+/* Thin scrollbar for customizer column */
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #4E3A2F transparent;
@@ -781,14 +972,5 @@ const close = () => cartStore.closeProductDetail()
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #4E3A2F;
   border-radius: 2px;
-}
-
-/* Spin-once animation for the RotateCcw icon */
-@keyframes spinOnce {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-.animate-spin-once {
-  animation: spinOnce 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

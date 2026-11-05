@@ -19,7 +19,6 @@
         class="absolute -bottom-40 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-coffee-sand/15 via-coffee-mid/20 to-transparent blur-[110px] animate-fluid-3"
       />
     </div>
-
     <NuxtPage />
     <ClientOnly>
       <CartDrawer />
@@ -30,4 +29,3 @@
     </ClientOnly>
   </div>
 </template>
-

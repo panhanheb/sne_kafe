@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Star, Plus, Check, Heart } from 'lucide-vue-next'
 import type { DisplayProduct } from '~/composables/useProducts'
 import { useCartStore } from '~/stores/cart'
 import { useI18n } from '~/composables/useI18n'
+import { useFlyToCart } from '~/composables/useFlyToCart'
+import { use8DAudio } from '~/composables/use8DAudio'
 
 const props = defineProps<{
   product: DisplayProduct
@@ -11,32 +13,96 @@ const props = defineProps<{
 
 const cartStore = useCartStore()
 const { t, isKhmer } = useI18n()
-const isAdded = ref(false)
+const { flyToCart } = useFlyToCart()
+const { playCardCue, playProduct8DExperience, playAddToCart, activePreviewProductId } = use8DAudio()
 
-const handleAddToCart = () => {
-  cartStore.addItem(props.product)
+const isAdded = ref(false)
+const cupImageRef = ref<HTMLElement | null>(null)
+const isPlayingThisPreview = computed(() => activePreviewProductId.value === props.product.id)
+
+const handleCardHover = (e: MouseEvent) => {
+  if (typeof window === 'undefined') return
+  const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect()
+  if (rect) {
+    const screenXRatio = (rect.left + rect.width / 2) / window.innerWidth
+    playCardCue(screenXRatio)
+  }
+}
+
+const handle8DPreviewClick = (e: Event) => {
+  e.stopPropagation()
+  if (typeof window === 'undefined') return
+  const el = e.currentTarget as HTMLElement
+  const rect = el?.getBoundingClientRect()
+  const screenXRatio = rect ? (rect.left + rect.width / 2) / window.innerWidth : 0.5
+  playProduct8DExperience(props.product.id, screenXRatio)
+}
+
+const handleAddToCart = async () => {
+  if (isAdded.value) return
   isAdded.value = true
+
+  // Play spatial tactile Add to Cart acoustic chime
+  const rect = cupImageRef.value?.getBoundingClientRect()
+  const screenXRatio = rect ? (rect.left + rect.width / 2) / window.innerWidth : 0.5
+  playAddToCart(screenXRatio)
+
+  // Realistic flying animation from the cup image to the header cart button
+  if (cupImageRef.value) {
+    flyToCart({
+      sourceEl: cupImageRef.value,
+      imageSrc: props.product.image,
+      duration: 0.75,
+    })
+  }
+
+  cartStore.addItem(props.product)
+
   setTimeout(() => {
     isAdded.value = false
-  }, 1200)
+  }, 1000)
 }
 </script>
 
 <template>
   <div
-    class="relative rounded-[2.25rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 group mt-16 sm:mt-20 liquid-glass-card select-none overflow-visible cursor-pointer"
+    class="reveal-on-scroll spatial-8d-card relative rounded-[2.25rem] p-6 sm:p-7 pt-16 sm:pt-20 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 group mt-16 sm:mt-20 liquid-glass-card select-none overflow-visible cursor-pointer gpu-accel hover:shadow-[0_24px_50px_rgba(0,0,0,0.55),0_0_40px_rgba(234,163,75,0.08)]"
     @click="cartStore.openProductDetail(product)"
+    @mouseenter="handleCardHover"
   >
     <!-- Overlapping Cup Image (Clean, prominent, unclipped with smooth soft drop shadow) -->
-    <div class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1 z-20 flex items-center justify-center">
+    <div
+      ref="cupImageRef"
+      class="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-32 sm:h-36 pointer-events-none transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 group-hover:-translate-y-3 z-20 flex items-center justify-center will-change-transform"
+    >
       <NuxtImg
         :src="product.image"
         :alt="product.name"
         width="150"
         height="150"
         loading="lazy"
-        class="w-full h-full object-contain filter drop-shadow-[0_6px_12px_rgba(0,0,0,0.14)]"
+        class="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.22)]"
       />
+      <!-- 8D Floating Audio Badge for all beverages with 1-click 8D Audio Preview -->
+      <button
+        v-if="product.category !== 'bakery'"
+        type="button"
+        class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold backdrop-blur-md shadow-lg flex items-center gap-1 transition-all duration-300 pointer-events-auto cursor-pointer active:scale-90"
+        :class="isPlayingThisPreview
+          ? 'bg-teal-400 text-black border-teal-200 shadow-[0_0_14px_rgba(111,168,163,0.8)] scale-110'
+          : 'bg-black/80 border-teal-400/50 text-teal-300 group-hover:border-teal-300 group-hover:scale-105'"
+        :title="'Listen to 8D sound of ' + product.name"
+        @click="handle8DPreviewClick"
+      >
+        <span class="text-[11px]">{{ isPlayingThisPreview ? '🔊' : '🎧' }}</span>
+        <span class="tracking-wider">8D</span>
+        <!-- Mini animated soundwave when preview is playing -->
+        <span v-if="isPlayingThisPreview" class="flex items-center gap-0.5 h-2.5 ml-0.5">
+          <span class="w-0.5 bg-black rounded-full animate-soundwave-1" />
+          <span class="w-0.5 bg-black rounded-full animate-soundwave-2" />
+          <span class="w-0.5 bg-black rounded-full animate-soundwave-3" />
+        </span>
+      </button>
     </div>
 
     <!-- Top Row: Rating Pill (left), Badge (middle), Favorite Heart (right) -->
@@ -107,7 +173,7 @@ const handleAddToCart = () => {
       <!-- Round Teal Liquid Glass Add Button -->
       <button
         type="button"
-        class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 active:scale-95"
+        class="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90 hover:scale-105"
         :class="isAdded
           ? 'bg-emerald-500 text-white shadow-md scale-105'
           : 'liquid-glass-button'"

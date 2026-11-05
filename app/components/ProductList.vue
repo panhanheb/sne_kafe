@@ -24,7 +24,7 @@ const handleOpenFullMenu = () => {
 
     <div class="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
       <!-- Section Header -->
-      <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-14">
+      <div class="reveal-on-scroll text-center max-w-2xl mx-auto mb-8 sm:mb-14">
         <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full liquid-glass-pill text-xs font-semibold text-teal-accent mb-3">
           <Sparkles class="w-3.5 h-3.5" />
           <span>{{ t.menu.tag }}</span>
@@ -46,16 +46,17 @@ const handleOpenFullMenu = () => {
       <!-- Featured Cards Grid / Mobile Horizontal Scroll -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-6 lg:gap-8 overflow-x-auto pb-4 snap-x">
         <div
-          v-for="product in featuredProducts"
+          v-for="(product, index) in featuredProducts"
           :key="product.id"
           class="snap-center"
+          :class="'reveal-stagger-' + ((index % 3) + 1)"
         >
           <ProductCard :product="product" />
         </div>
       </div>
 
       <!-- Button below: "View Full Menu →" (Liquid Glass link pill) -->
-      <div class="mt-14 sm:mt-18 text-center">
+      <div class="reveal-on-scroll reveal-stagger-2 mt-14 sm:mt-18 text-center">
         <button
           type="button"
           class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full liquid-glass-pill text-coffee-sand hover:text-white hover:border-teal-accent/50 font-medium text-sm sm:text-base transition-all group cursor-pointer hover:scale-105"
