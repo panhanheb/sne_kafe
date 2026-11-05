@@ -127,7 +127,7 @@ const features = computed(() => [
           <button
             type="button"
             class="mt-6 px-12 py-4 rounded-full liquid-glass-button font-extrabold text-sm sm:text-base tracking-wide cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300"
-            @click="cartStore.openCart()"
+            @click="handleOrderClick"
           >
             {{ t.about.orderBtn }}
           </button>
